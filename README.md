@@ -1,6 +1,12 @@
-# Shetland-RSS-Feed
-A feed to get all Shetland news posted on google in the past week, sorted by date
+# Invoicer
+A way to store, display and print all of your invoices. 
+
+# How It Works
+1. Enter/create the database you want to store to.
+2. Enter the customers and invoices.
+3. View the tables and information it displays.
+4. (Optional) Print the tables you want.
 
 ![Main menu](/readme-images/main.png)
 
-![Example of selecting Shetland feed](/readme-images/page.png)
+![Example of invoice](/readme-images/page.png)
