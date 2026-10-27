@@ -4,22 +4,25 @@
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="styles.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Tauri App</title>
+		<title>Main Menu</title>
 		<script type="module" src="js/checkforfile.js" defer></script>
+		<script type="module" src="js/popup.js" defer></script>
 	</head>
 	<nav>
 		<a id="settings" href="settings.html"><img src="assets/settings.png" alt="Settings" /></a>
 	</nav>
 
 	<body>
-		<main class="container">
-			<h1>Welcome to Tauri</h1>
-
-			<form class="row" id="greet-form">
-				<input id="greet-input" placeholder="Enter a name..." />
-				<button type="submit">Greet</button>
-			</form>
-			<p id="greet-msg"></p>
+		<main>
+			<h1>Invoicer</h1>
+			<div id="container">
+				<button name="advertiser" class="addBtn">Add Advertiser</button>
+				<button name="invoice" class="addBtn">Add Invoice</button>
+			</div>
+			<div id="container years"></div>
+			<div id="popupmenu">
+				<form id="popupdata"></form>
+			</div>
 		</main>
 	</body>
 </html>

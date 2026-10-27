@@ -98,7 +98,7 @@ addEventListener("submit", (event) => {
 });
 
 async function save() {
-	let type = document.getElementById("type").value;
+	let type = dropdown.value;
 	let dbname = document.getElementById("dbname").value;
 	let content = "";
 	let bSuccess = true;
@@ -158,4 +158,37 @@ async function save() {
 		message.classList.add("failure");
 		message.innerHTML = "Failed to save";
 	}
+}
+
+let displayFilename = "display";
+let start = document.getElementById("start");
+let end = document.getElementById("end");
+start.addEventListener("change", saveDates, false);
+end.addEventListener("change", saveDates, false);
+
+async function loadDates() {
+	if (!await exists(displayFilename, { baseDir: BaseDirectory.AppLocalData })) {
+		await create(displayFilename, { baseDir: BaseDirectory.AppLocalData });
+		await saveDates();
+	}
+	else {
+		const data = await readFile(displayFilename, { baseDir: BaseDirectory.AppLocalData });
+
+		let decodedData = new TextDecoder().decode(data);
+		let parsedData = decodedData.split(",");
+
+		start.value = parsedData[0];
+		end.value = parsedData[1];
+
+		console.log(decodedData);
+	}
+}
+loadDates();
+
+async function saveDates() {
+	let content = start.value + "," + end.value;
+
+	let file = await open(displayFilename, { write: true, truncate: true, baseDir: BaseDirectory.AppLocalData });
+	await file.write(new TextEncoder().encode(content));
+	await file.close();
 }
