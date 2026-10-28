@@ -13,7 +13,8 @@
 				"title": "invoicer",
 				"width": 800,
 				"height": 600,
-				"minWidth": 420
+				"minWidth": 420,
+				"transparent": true
 			}
 		],
 		"security": {
@@ -55,6 +56,19 @@
 						"core:resources:default",
 						{
 							"identifier": "core:resources:allow-close",
+							"allow": [{ "path": "$APPDATA/*" }]
+						}
+					]
+				},
+				{
+					"identifier": "sql-capability",
+					"description": "SQL capability in application",
+					"windows": ["*"],
+					"permissions": [
+						"sql:default",
+						"sql:allow-execute",
+						{
+							"identifier": "sql:allow-load",
 							"allow": [{ "path": "$APPDATA/*" }]
 						}
 					]

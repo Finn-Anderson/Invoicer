@@ -11,15 +11,19 @@
 	<nav>
 		<a id="settings" href="settings.html"><img src="assets/settings.png" alt="Settings" /></a>
 	</nav>
-
 	<body>
 		<main>
 			<h1>Invoicer</h1>
 			<div id="container">
-				<button name="advertiser" class="addBtn">Add Advertiser</button>
-				<button name="invoice" class="addBtn">Add Invoice</button>
+				<div>
+					<button name="advertiser" class="addBtn">Add Advertiser</button>
+					<a href="table.html?advertisers">View Advertisers</a>
+				</div>
+				<div>
+					<button name="invoice" class="addBtn">Add Invoice</button>
+					<a href="table.html?invoices">View Invoices</a>
+				</div>
 			</div>
-			<div id="container years"></div>
 			<div id="popupmenu">
 				<form id="popupdata"></form>
 			</div>

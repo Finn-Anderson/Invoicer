@@ -1,6 +1,7 @@
-const { exists, BaseDirectory } = window.__TAURI__.fs;
+const { exists, readFile, BaseDirectory } = window.__TAURI__.fs;
+const Database = window.__TAURI__.sql;
 
-let status = await exists("dbdata", { baseDir: BaseDirectory.AppLocalData });
+async function check() {
+	let status = await exists("dbdata", { baseDir: BaseDirectory.AppLocalData });
 
-if (!status)
-	window.location.href = "../settings.html";
+}

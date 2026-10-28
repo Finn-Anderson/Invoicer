@@ -5,7 +5,9 @@
 	font-weight: 400;
 
 	color: #0f0f0f;
-	background-color: #f6f6f6;
+	background-color: transparent;
+	backdrop-filter: blur(4px);
+	background: linear-gradient(to bottom right, rgba(246, 246, 246), rgba(230, 230, 230));
 
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
@@ -36,24 +38,31 @@ nav a img {
 }
 
 nav a:hover img {
-	filter: opacity(0.5) drop-shadow(0 0 2em blue)  drop-shadow(0 0 0 blue) drop-shadow(0 0 0 blue);
+	filter: opacity(0.5) drop-shadow(0 0 0 #5C5CD5) drop-shadow(0 0 0 #5C5CD5) drop-shadow(0 0 0 #5C5CD5) drop-shadow(0 0 2em #5C5CD5);
+}
+
+div a {
+	display: block;
+	margin-top: 4px;
+	color: #0f0f0f;
+	transition: 0.4s;
+}
+
+a:hover {
+	color: #5C5CD5;
+	filter: drop-shadow(0 0 2px #5C5CD5);
+}
+a:active {
+	transform: translateY(1px);
+	color: #7070da;
+	filter: drop-shadow(0 0 2px #7070da);
 }
 
 nav #settings {
 	margin-left: auto;
 }
 
-a {
-	font-weight: 500;
-	color: #646cff;
-	text-decoration: inherit;
-}
-
-a:hover {
-	color: #535bf2;
-}
-
-h1, h2 {
+h1, h2, div:has(a) {
 	text-align: center;
 }
 
@@ -110,21 +119,21 @@ select:focus, input:focus, button:active {
 	filter: drop-shadow(0 0 2px #7070da);
 }
 
-button {
+button, form input[type="submit"] {
 	cursor: pointer;
 	margin: auto;
 }
-button:hover {
+button:hover, form input[type="submit"]:hover {
 	color: #f6f6f6;
 	background-color: #5C5CD5;
 }
-button:active {
+button:active, form input[type="submit"]:active {
 	color: #f6f6f6;
 	transform: translateY(1px);
 	background-color: #7070da;
 }
 
-form button, #popupdata button {
+form input[type="submit"] {
 	margin-top: 24px;
 }
 
@@ -140,6 +149,10 @@ select {
 #message {
 	text-align: center;
 	font-weight: bold;
+	margin: 0;
+}
+#message.success, #message.failure {
+	margin: 12px;
 }
 .success {
 	color: #5cd55c;
@@ -148,8 +161,27 @@ select {
 	color: #d55c5c;
 }
 
+.close {
+	position: absolute;
+	top: 0px;
+	right: 2px;
+	width: 0;
+	height: 0;
+	background-color: transparent;
+	box-shadow: none;
+}
+.close:hover {
+	background-color: transparent;
+	color: #d55c5c;
+	filter: drop-shadow(0 0 2px #d55c5c);
+}
+.close:active {
+	background-color: transparent;
+	color: #da7070;
+	filter: drop-shadow(0 0 2px #da7070);
+}
+
 #popupmenu {
-	display: none;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -158,9 +190,11 @@ select {
 	background-color: rgba(15, 15, 15, 0.5);
 	justify-content: center;
 	align-items: center;
+	animation: hide 0s forwards;
 }
 
 #popupdata {
+	position: relative;
 	color: #0f0f0f;
 	background-color: #f6f6f6;
 	padding: 1em;
@@ -172,9 +206,63 @@ select {
 	margin-bottom: 24px;
 }
 
+table {
+	border: 1px solid #0f0f0f;
+	margin: auto;
+	border-collapse: collapse;
+}
+
+table tr:nth-child(odd) {
+	background-color: #c6c6c6;
+}
+
+table td, table th {
+	text-align: center;
+	padding: 2px 8px;
+}
+
+@keyframes popup {
+	from {
+		display: flex;
+		opacity: 0;
+	}
+	to {
+		display: flex;
+		opacity: 1;
+	}
+}
+
+@keyframes hide {
+	from {
+		display: flex;
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+	100% {
+		display: none;
+	}
+}
+
 @media (prefers-color-scheme: dark) {
-	:root, #popupdata {
+	:root, #popupdata, select, input, button, div a {
 		color: #f6f6f6;
+	}
+
+	:root {
+		background: linear-gradient(to bottom right, rgba(47, 47, 47), rgba(31, 31, 31));
+	}
+
+	table {
+		border-color: #f6f6f6;
+	}
+
+	table tr:nth-child(odd) {
+		background-color: #3f3f3f;
+	}
+
+	#popupdata {
 		background-color: #2f2f2f;
 	}
 
@@ -183,7 +271,6 @@ select {
 	}
 
 	select, input, button {
-		color: #f6f6f6;
 		background-color: #0f0f0f;
 	}
 }

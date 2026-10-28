@@ -38,10 +38,6 @@ async function displayForm() {
 	const form = document.querySelector("form");
 	form.innerHTML = "";
 
-	const message = document.createElement("p");
-	message.id = "message";
-	form.appendChild(message);
-
 	if (dropdown.value == "sqlite") {
 		const pdbname = document.createElement("p");
 		pdbname.innerHTML = "Database Name";
@@ -80,7 +76,7 @@ async function displayForm() {
 		form.appendChild(idbname);
 	}
 
-	const button = document.createElement("button");
+	const button = document.createElement("input");
 	button.type = "submit";
 	button.innerHTML = "Submit";
 	form.appendChild(button);
@@ -105,14 +101,10 @@ async function save() {
 
 	if (type == "sqlite") {
 		if (dbname) {
-			content = type + "," + dbname;
-
 			if (!dbname.toLowerCase().includes(".db"))
 				dbname += ".db";
 
-			let status2 = await exists(dbname, { baseDir: BaseDirectory.AppLocalData });
-			if (!status2)
-				await create(dbname, { baseDir: BaseDirectory.AppLocalData });
+			content = type + "," + dbname;
 		}
 		else
 			bSuccess = false;
