@@ -1,16 +1,12 @@
-const { exists, readFile, create, open, BaseDirectory } = window.__TAURI__.fs;
+import { dbdata, display, read, fileExists, updateFile } from "./includes/file.js";
 
-let filename = "dbdata";
-let status = await exists(filename, { baseDir: BaseDirectory.AppLocalData });
+const status = await fileExists(dbdata);
 
 async function populateFields(bSetType, bOnlyType = false) {
 	if (!status)
 		return;
 
-	const data = await readFile(filename, { baseDir: BaseDirectory.AppLocalData });
-
-	let decodedData = new TextDecoder().decode(data);
-	let parsedData = decodedData.split(",");
+	const parsedData = await read(dbdata);
 
 	if (bSetType)
 		document.getElementById("type").value = parsedData[0];
@@ -120,26 +116,8 @@ async function save() {
 			bSuccess = false;
 	}
 
-	if (bSuccess) {
-		let file = null;
-
-		try {
-			if (!status)
-				file = await create(filename, { baseDir: BaseDirectory.AppLocalData });
-			else
-				file = await open(filename, { write: true, truncate: true, baseDir: BaseDirectory.AppLocalData });
-
-			if (file) {
-				await file.write(new TextEncoder().encode(content));
-				await file.close();
-			}
-			else
-				bSuccess = false;
-		} catch(error) {
-			console.log(error);
-			bSuccess = false;
-		}
-	}
+	if (bSuccess && !await updateFile(dbdata, content))
+		bSuccess = false;
 
 	let message = document.getElementById("message");
 	if (bSuccess) {
@@ -152,35 +130,31 @@ async function save() {
 	}
 }
 
-let displayFilename = "display";
-let start = document.getElementById("start");
-let end = document.getElementById("end");
-start.addEventListener("change", saveDates, false);
-end.addEventListener("change", saveDates, false);
+const start = document.getElementById("start");
+const end = document.getElementById("end");
+const company = document.getElementById("company");
+const currency = document.getElementById("currency");
+start.addEventListener("change", saveDisplay, false);
+end.addEventListener("change", saveDisplay, false);
+company.addEventListener("change", saveDisplay, false);
+currency.addEventListener("change", saveDisplay, false);
 
-async function loadDates() {
-	if (!await exists(displayFilename, { baseDir: BaseDirectory.AppLocalData })) {
-		await create(displayFilename, { baseDir: BaseDirectory.AppLocalData });
-		await saveDates();
-	}
+async function loadDisplay() {
+	if (!await fileExists(display))
+		await saveDisplay();
 	else {
-		const data = await readFile(displayFilename, { baseDir: BaseDirectory.AppLocalData });
-
-		let decodedData = new TextDecoder().decode(data);
-		let parsedData = decodedData.split(",");
+		const parsedData = await read(display);
 
 		start.value = parsedData[0];
 		end.value = parsedData[1];
-
-		console.log(decodedData);
+		company.value = parsedData[2] ? parsedData[2] : "";
+		currency.value = parsedData[3];
 	}
 }
-loadDates();
+loadDisplay();
 
-async function saveDates() {
-	let content = start.value + "," + end.value;
+async function saveDisplay() {
+	let content = start.value + "," + end.value + "," + company.value + "," + currency.value;
 
-	let file = await open(displayFilename, { write: true, truncate: true, baseDir: BaseDirectory.AppLocalData });
-	await file.write(new TextEncoder().encode(content));
-	await file.close();
+	await updateFile(display, content);
 }

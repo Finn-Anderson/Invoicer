@@ -1,15 +1,19 @@
-import { loadDB, typeDB } from "./db.js";
+import { loadDB, typeDB } from "./includes/db.js";
+import { display, read } from "./includes/file.js";
 
-document.querySelectorAll(".addBtn").forEach(element => {
-	element.addEventListener("click", displayMenu, false);
-});
+let page = window.location.search.split("/?(.*)/s").pop();
+page = page.substring(1, page.length - 1);
+
+const button = document.getElementById("addBtn");
+button.addEventListener("click", displayMenu, false);
 
 let popupmenu = document.getElementById("popupmenu");
 let popupdata = document.getElementById("popupdata");
-popupmenu.addEventListener("click", hidePopupMenu, false);
 popupdata.addEventListener("submit", submitPopupData, false);
 
-async function displayMenu(event) {
+async function displayMenu() {
+	const parsedData = await read(display);
+
 	popupmenu.style.animation = "popup 0.2s forwards";
 
 	popupdata.innerHTML = "";
@@ -18,26 +22,31 @@ async function displayMenu(event) {
 	closebtn.type = "button";
 	closebtn.classList.add("close");
 	closebtn.innerHTML = "X";
-	closebtn.onclick = () => { hidePopupMenu(null, true) };
+	closebtn.onclick = hidePopupMenu;
 	popupdata.appendChild(closebtn);
 
 	const header = document.createElement("h2");
-	header.innerHTML = event.target.innerHTML;
-	header.name = event.target.name;
+	header.innerHTML = page.charAt(0).toUpperCase() + page.slice(1);
+	header.name = page;
 	popupdata.appendChild(header);
 
 	const message = document.createElement("p");
 	message.id = "message";
 	popupdata.appendChild(message);
 
-	const padvertiser = document.createElement("p");
-	padvertiser.innerHTML = "Advertiser";
-	popupdata.appendChild(padvertiser);
-	const iadvertiser = document.createElement("input");
-	iadvertiser.required = true;
-	popupdata.appendChild(iadvertiser);
+	if (page != "payment") {
+		const padvertiser = document.createElement("p");
+		padvertiser.innerHTML = "Advertiser";
+		popupdata.appendChild(padvertiser);
+		const iadvertiser = document.createElement("input");
+		iadvertiser.required = true;
+		popupdata.appendChild(iadvertiser);
 
-	if (event.target.name == "invoice") {
+		if (page == "invoice")
+			iadvertiser.addEventListener("change", search, false);
+	}
+
+	if (page == "invoice") {
 		const pinvoiceno = document.createElement("p");
 		pinvoiceno.innerHTML = "Invoice Number";
 		popupdata.appendChild(pinvoiceno);
@@ -46,7 +55,7 @@ async function displayMenu(event) {
 		popupdata.appendChild(iinvoiceno);
 
 		const pamount = document.createElement("p");
-		pamount.innerHTML = "Amount";
+		pamount.innerHTML = "Amount (" + parsedData[3] + ")";
 		popupdata.appendChild(pamount);
 		const iamount = document.createElement("input");
 		iamount.type = "currency";
@@ -54,7 +63,7 @@ async function displayMenu(event) {
 		popupdata.appendChild(iamount);
 
 		const pvat = document.createElement("p");
-		pvat.innerHTML = "VAT";
+		pvat.innerHTML = "VAT (" + parsedData[3] + ")";
 		popupdata.appendChild(pvat);
 		const ivat = document.createElement("input");
 		ivat.type = "currency";
@@ -76,8 +85,31 @@ async function displayMenu(event) {
 		iduedate.type = "date";
 		iduedate.required = true;
 		popupdata.appendChild(iduedate);
+	}
+	else if (page == "payment") {
+		const pinvoiceno = document.createElement("p");
+		pinvoiceno.innerHTML = "Invoice Number";
+		popupdata.appendChild(pinvoiceno);
+		const iinvoiceno = document.createElement("input");
+		iinvoiceno.required = true;
+		iinvoiceno.addEventListener("change", search, false);
+		popupdata.appendChild(iinvoiceno);
 
-		iadvertiser.addEventListener("change", search, false);
+		const ppaid = document.createElement("p");
+		ppaid.innerHTML = "Paid (" + parsedData[3] + ")";
+		popupdata.appendChild(ppaid);
+		const ipaid = document.createElement("input");
+		ipaid.type = "currency";
+		ipaid.required = true;
+		popupdata.appendChild(ipaid);
+
+		const pdate = document.createElement("p");
+		pdate.innerHTML = "Payment Date";
+		popupdata.appendChild(pdate);
+		const idate = document.createElement("input");
+		idate.type = "date";
+		idate.required = true;
+		popupdata.appendChild(idate);
 	}
 
 	const button = document.createElement("input");
@@ -89,8 +121,9 @@ async function displayMenu(event) {
 const MessageStatus = {
 	Success: 0,
 	Exists: 1,
-	Empty: 2,
-	Failed: 3
+	Advertiser: 2,
+	Invoice: 3,
+	Failed: 4
 }
 
 async function submitPopupData(event) {
@@ -127,7 +160,7 @@ async function submitPopupData(event) {
 						success = MessageStatus.Failed;
 				}
 			}
-			else {
+			else if (event.target.children[1].name == "invoice") {
 				try {
 					let list = "($1, $2, $3, $4, $5, $6)";
 					let select = "$1"
@@ -137,13 +170,14 @@ async function submitPopupData(event) {
 						select = "?";
 					}
 
-					//await db.execute("DROP TABLE IF EXISTS Invoices");
-					await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount DECIMAL NOT NULL, vat DECIMAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL,FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
-
 					const result = await db.select("SELECT id FROM Advertisers WHERE name = " + select, [inputs[0].value]);
 					if (result.length == 0) throw "empty";
 
-					console.log(result[0].id);
+					//await db.execute("DROP TABLE IF EXISTS Invoices");
+					//await db.execute("DROP TABLE IF EXISTS Payments");
+					await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount DECIMAL NOT NULL, vat DECIMAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
+					await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount INTEGER NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo))");
+
 					await db.execute("INSERT INTO Invoices (invoiceNo, advertiserID, amount, vat, date, dueDate) VALUES " + list,
 						[inputs[1].value, result[0].id, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value]
 					);
@@ -152,7 +186,33 @@ async function submitPopupData(event) {
 					if (error.includes("UNIQUE"))
 						success = MessageStatus.Exists;
 					else if (error == "empty")
-						success = MessageStatus.Empty;
+						success = MessageStatus.Advertiser;
+					else
+						success = MessageStatus.Failed;
+				}
+			}
+			else {
+				try {
+					let list = "($1, $2, $3)";
+					let select = "$1"
+
+					if (typeDB() == "mysql") {
+						list = "(?, ?, ?)";
+						select = "?";
+					}
+
+					const result = await db.select("SELECT invoiceNo, amount, vat FROM Invoices WHERE invoiceNo = " + select, [inputs[0].value]);
+					if (result.length == 0) throw "empty";
+
+					await db.execute("INSERT INTO Payments (invoiceNo, amount, date) VALUES " + list,
+						[inputs[0].value, inputs[1].value, inputs[2].value]
+					);
+				} catch(error) {
+					console.log(error);
+					if (error.includes("UNIQUE"))
+						success = MessageStatus.Exists;
+					else if (error == "empty")
+						success = MessageStatus.Advertiser;
 					else
 						success = MessageStatus.Failed;
 				}
@@ -166,22 +226,23 @@ async function submitPopupData(event) {
 	if (success == MessageStatus.Success) {
 		message.classList.add("success");
 		message.innerHTML = "Saved";
+
+		window.location.reload();
 	}
 	else {
 		message.classList.add("failure");
 		if (success == MessageStatus.Exists)
 			message.innerHTML = "Entry already exists";
-		else if (success == MessageStatus.Empty)
+		else if (success == MessageStatus.Advertiser)
 			message.innerHTML = "Advertiser does not exist";
+		else if (success == MessageStatus.Invoice)
+			message.innerHTML = "Invoice does not exist";
 		else
 			message.innerHTML = "Failed to save";
 	}
 }
 
-function hidePopupMenu(event, bForce = false) {
-	if (!bForce && event.target != popupmenu)
-		return;
-
+function hidePopupMenu() {
 	popupmenu.style.animation = "hide 0.2s forwards";
 }
 

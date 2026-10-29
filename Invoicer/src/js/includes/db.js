@@ -1,20 +1,14 @@
-const { exists, readFile, BaseDirectory } = window.__TAURI__.fs;
 const Database = window.__TAURI__.sql;
+import { read, fileExists } from "./file.js";
 
 let type = "mysql";
 
 export async function loadDB() {
 	let filename = "dbdata";
-	if (!await exists(filename, { baseDir: BaseDirectory.AppLocalData })) {
-		window.location.href = "../settings.html";
-
+	if (!await fileExists(filename, false, "../settings.html"))
 		return;
-	}
 
-	const data = await readFile(filename, { baseDir: BaseDirectory.AppLocalData });
-
-	let decodedData = new TextDecoder().decode(data);
-	let parsedData = decodedData.split(",");
+	const parsedData = await read(filename);
 	let db = null;
 
 	type = parsedData[0];

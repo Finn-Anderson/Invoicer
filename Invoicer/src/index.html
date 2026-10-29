@@ -6,7 +6,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Main Menu</title>
 		<script type="module" src="js/checkforfile.js" defer></script>
-		<script type="module" src="js/popup.js" defer></script>
 	</head>
 	<nav>
 		<a id="settings" href="settings.html"><img src="assets/settings.png" alt="Settings" /></a>
@@ -15,14 +14,9 @@
 		<main>
 			<h1>Invoicer</h1>
 			<div id="container">
-				<div>
-					<button name="advertiser" class="addBtn">Add Advertiser</button>
-					<a href="table.html?advertisers">View Advertisers</a>
-				</div>
-				<div>
-					<button name="invoice" class="addBtn">Add Invoice</button>
-					<a href="table.html?invoices">View Invoices</a>
-				</div>
+				<a href="table.html?advertisers">View Advertisers</a>
+				<a href="table.html?invoices">View Invoices</a>
+				<a href="table.html?payments">View Payments</a>
 			</div>
 			<div id="popupmenu">
 				<form id="popupdata"></form>

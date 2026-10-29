@@ -1,7 +1,3 @@
-const { exists, readFile, BaseDirectory } = window.__TAURI__.fs;
-const Database = window.__TAURI__.sql;
+import { dbdata, fileExists } from "./includes/file.js";
 
-async function check() {
-	let status = await exists("dbdata", { baseDir: BaseDirectory.AppLocalData });
-
-}
+fileExists(dbdata, false, "../settings.html");

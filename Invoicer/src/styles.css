@@ -157,6 +157,9 @@ select {
 .success {
 	color: #5cd55c;
 }
+.inconclusive {
+    color: #d5d55c;
+}
 .failure {
 	color: #d55c5c;
 }
@@ -206,19 +209,71 @@ select {
 	margin-bottom: 24px;
 }
 
-table {
-	border: 1px solid #0f0f0f;
+#tableContainer {
+	display: table;
 	margin: auto;
-	border-collapse: collapse;
 }
 
-table tr:nth-child(odd) {
+#tableControls {
+	display: flex;
+	margin: 8px 0px;
+	margin-right: 50px;
+	flex-direction: row-reverse;
+}
+
+#tableControls button, #delBtn {
+	margin: 0px;
+	padding: 4px 8px;
+	width: auto;
+	border-radius: 50%;
+}
+
+table {
+	border-collapse: collapse;
+	margin-left: 50px;
+}
+
+#delBtn {
+	opacity: 0;
+	background-color: #d55c5c;
+	padding: 4px 9px;
+	filter: drop-shadow(0 0 2px #d55c5c);
+}
+#delBtn:hover {
+	background-color: #da7070;
+	filter: drop-shadow(0 0 2px #da7070);
+}
+#delBtn:active {
+	transform: translateY(1px);
+}
+
+table tr {
+	background-color: transparent;
+}
+table tr:nth-child(even) td {
+	background-color: rgba(198, 198, 198, 0.4);
+}
+table tr:nth-child(odd) td {
+	background-color: rgba(198, 198, 198, 0.2);
+}
+table tr:first-child {
 	background-color: #c6c6c6;
 }
 
 table td, table th {
 	text-align: center;
-	padding: 2px 8px;
+	padding: 2px 1em;
+}
+table td.success, table td.inconclusive, table td.failure {
+	font-weight: bold;
+}
+#table tr td:last-child {
+	background-color: transparent;
+	padding-left: 8px;
+}
+
+tr:hover #delBtn {
+	opacity: 1;
 }
 
 @keyframes popup {
@@ -254,11 +309,13 @@ table td, table th {
 		background: linear-gradient(to bottom right, rgba(47, 47, 47), rgba(31, 31, 31));
 	}
 
-	table {
-		border-color: #f6f6f6;
+	table tr:nth-child(even) td {
+		background-color: rgba(63, 63, 63, 0.25);
 	}
-
-	table tr:nth-child(odd) {
+	table tr:nth-child(odd) td {
+		background-color: rgba(63, 63, 63, 0.5);
+	}
+	table tr:first-child {
 		background-color: #3f3f3f;
 	}
 
