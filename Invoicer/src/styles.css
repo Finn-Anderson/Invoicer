@@ -85,7 +85,7 @@ h2 {
 	justify-self: center;
 }
 
-form p, #displayDiv p {
+form p, #displayDiv p, #popupfilter p {
 	margin: 12px 0px 2px 2px;
 	text-align: left;
 }
@@ -112,7 +112,7 @@ input, button {
 	padding: 0.6em 1.2em;
 }
 
-select:hover, input:hover, button:hover {
+select:hover, input:hover, button:hover, button.active {
 	filter: drop-shadow(0 0 2px #5C5CD5);
 }
 select:focus, input:focus, button:active {
@@ -123,7 +123,7 @@ button, form input[type="submit"] {
 	cursor: pointer;
 	margin: auto;
 }
-button:hover, form input[type="submit"]:hover {
+button:hover, form input[type="submit"]:hover, button.active {
 	color: #f6f6f6;
 	background-color: #5C5CD5;
 }
@@ -196,15 +196,16 @@ select {
 	animation: hide 0s forwards;
 }
 
-#popupdata {
+#popupdata, #popupfilter {
 	position: relative;
 	color: #0f0f0f;
-	background-color: #f6f6f6;
+	background-color: #d6d6d6;
 	padding: 1em;
 	border-radius: 8px;
+	filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
 }
 
-#popupdata h2 {
+#popupdata h2, #popupfilter h2 {
 	margin-top: 0px;
 	margin-bottom: 24px;
 }
@@ -226,6 +227,14 @@ select {
 	padding: 4px 8px;
 	width: auto;
 	border-radius: 50%;
+}
+#tableControls button {
+	font-size: 18px;
+	padding: 4px 9.25px;
+}
+
+#tableControls #addBtn {
+	margin-left: 4px;
 }
 
 table {
@@ -256,7 +265,8 @@ table tr:nth-child(even) td {
 table tr:nth-child(odd) td {
 	background-color: rgba(198, 198, 198, 0.2);
 }
-table tr:first-child {
+table tr:first-child th:last-child {
+	width: 18px;
 	background-color: #c6c6c6;
 }
 
@@ -271,9 +281,48 @@ table td.success, table td.inconclusive, table td.failure {
 	background-color: transparent;
 	padding-left: 8px;
 }
+#table tr th:last-child {
+	background-color: transparent;
+}
 
 tr:hover #delBtn {
 	opacity: 1;
+}
+
+#filterContainer {
+	position: relative;
+}
+#filterBtn {
+	width: 100%;
+	height: 100%;
+}
+#filter {
+	display: block;
+    width: 12px;
+    height: 12px;
+	padding: 0px;
+	margin: 2px 0px;
+	background-color: #0f0f0f;
+	clip-path: polygon(33% 100%, 66% 85%, 66% 50%, 100% 0%, 0% 0%, 33% 50%);
+}
+#popupfilter {
+	position: absolute;
+	top: 100%;
+	right: 100%;
+	flex-direction: column;
+	animation: hide 0s forwards;
+}
+#popupfilter.show {
+	animation: popup 0.2s forwards;
+}
+#popupfilter.hide {
+	animation: hide 0.2s forwards;
+}
+#popupfilter h2 {
+	margin-bottom: 12px;
+}
+#popupfilter .close {
+	padding: 8px;
 }
 
 @keyframes popup {
@@ -301,7 +350,7 @@ tr:hover #delBtn {
 }
 
 @media (prefers-color-scheme: dark) {
-	:root, #popupdata, select, input, button, div a {
+	:root, #popupdata, #popupfilter, select, input, button, div a {
 		color: #f6f6f6;
 	}
 
@@ -315,11 +364,15 @@ tr:hover #delBtn {
 	table tr:nth-child(odd) td {
 		background-color: rgba(63, 63, 63, 0.5);
 	}
-	table tr:first-child {
+	table tr:first-child th {
 		background-color: #3f3f3f;
 	}
 
-	#popupdata {
+	#filter {
+		background-color: #f6f6f6;
+	}
+
+	#popupdata, #popupfilter {
 		background-color: #2f2f2f;
 	}
 

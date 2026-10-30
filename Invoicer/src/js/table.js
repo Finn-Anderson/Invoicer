@@ -2,29 +2,45 @@ import { loadDB, typeDB } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
 
 const table = document.getElementById("table");
+const popup = document.getElementById("popupfilter");
+let name = "";
 
 window.addEventListener("DOMContentLoaded", () => {
 	let page = window.location.search.split("/?(.*)/s").pop();
 	page = page.substring(1);
 
-	let name = page.charAt(0).toUpperCase() + page.slice(1);
+	name = page.charAt(0).toUpperCase() + page.slice(1);
 
 	document.getElementById("tableH1").innerHTML = name;
 
-	displayTable(name);
+	displayTable(name, "");
 });
 
-async function displayTable(name) {
-	const db = await loadDB();
+async function displayTable(name, conditions) {
 	try {
+		const db = await loadDB();
+
 		let order = " ORDER BY invoiceNo DESC";
 		if (name == "Advertisers")
 			order = " ORDER BY id ASC";
 
-		const result = await db.select("SELECT * FROM " + name + order);
+		const result = await db.select("SELECT * FROM " + name + conditions + order);
+
+		for (let i = table.children.length - 1; i > -1; i--) {
+			let element = table.children[i];
+			if (element.children[0].tagName == "TH")
+				continue;
+
+			table.removeChild(element);
+		}
+
+		let bGenerateHeaders = true;
+		if (table.children.length > 0)
+			bGenerateHeaders = false;
 
 		const thr = document.createElement("tr");
-		table.appendChild(thr);
+		if (bGenerateHeaders)
+			table.appendChild(thr);
 
 		const parsedData = await read(display);
 
@@ -51,10 +67,51 @@ async function displayTable(name) {
 					value = date.toLocaleDateString();
 				}
 
-				if (result[0] == element) {
+				if (bGenerateHeaders && result[0] == element) {
+					const title = (header.charAt(0).toUpperCase() + header.slice(1)).replace(/([A-Z])/g, ' $1').trim();
+
 					const th = document.createElement("th");
-					th.innerHTML = header.charAt(0).toUpperCase() + header.slice(1);
+					th.innerHTML = title;
 					thr.appendChild(th);
+
+					const p = document.createElement("p");
+					p.innerHTML = title;
+
+					const input = document.createElement("input")
+					input.name = key;
+					input.addEventListener("change", submitFilter, false);
+					
+					if (header.toLowerCase().includes("date") || header.toLowerCase().includes(parsedData[3])) {
+						if (header.toLowerCase().includes("date"))
+							input.type = "date";
+						else
+							input.type = "currency";
+
+						const p2 = p.cloneNode(true);
+						const input2 = input.cloneNode(true);
+						input2.addEventListener("change", submitFilter, false);
+
+						let word1 = "From";
+						let word2 = "To";
+						if (header.toLowerCase().includes(parsedData[3])) {
+							word1 = "Min";
+							word2 = "Max";
+						}
+						
+						p.innerHTML = word1 + " " + title;
+						popup.appendChild(p);
+						input.name = word1.toLowerCase() + "_" + key;
+						popup.appendChild(input);
+						
+						p2.innerHTML = word2 + " " + title;
+						popup.appendChild(p2);
+						input2.name = word2.toLowerCase() + "_" + key;
+						popup.appendChild(input2);
+					}
+					else {
+						popup.appendChild(p);
+						popup.appendChild(input);
+					}
 				}
 				
 				const td = document.createElement("td");
@@ -90,6 +147,12 @@ async function displayTable(name) {
 				tr.appendChild(td);
 			}
 
+			if (result[0] == element) {
+				const th = document.createElement("th");
+				th.innerHTML = "";
+				thr.appendChild(th);
+			}
+
 			const td = document.createElement("td");
 			const delBtn = document.createElement("button");
 			delBtn.innerHTML = "x";
@@ -101,7 +164,7 @@ async function displayTable(name) {
 			table.appendChild(tr);
 		};
 	} catch(error) {
-
+		console.log(error);
 	}
 }
 
@@ -127,3 +190,85 @@ async function deleteRow(table, row) {
 	const result = await db.execute("DELETE FROM " + table + " WHERE " + id);
 	window.location.reload();
 }
+
+document.getElementById("filterBtn").onclick = () => {
+	const button = document.getElementById("filterBtn");
+
+	if (popup.classList.contains("show")) {
+		button.classList.remove("active");
+
+		popup.classList.remove("show");
+		popup.classList.add("hide");
+	}
+	else {
+		button.classList.add("active");
+
+		popup.classList.remove("hide");
+		popup.classList.add("show");
+	}
+}
+
+async function submitFilter() {
+	try {
+		const db = await loadDB();
+		const inputs = popup.querySelectorAll("input");
+		let where = " WHERE";
+		let count = 0;
+
+		for await (const element of inputs) {
+			if (element.value.length == 0)
+				continue;
+
+			if (count > 0)
+				where += " AND"
+
+			let value = element.value;
+			let field = element.name;
+
+			if (element.name == "advertiserID") {
+				let select = "$1";
+				if (typeDB() == "mysql")
+					select = "?";
+				
+				const data = await db.select("SELECT id FROM Advertisers WHERE name LIKE " + select, ["%" + value + "%"]);
+
+				let list = "(";
+				for await (const result of data)
+					list += result.id + ",";
+				list = list.substring(0, list.length - 1) + ")";
+
+				where += " advertiserID IN " + list;
+				count++;
+			}
+			else if (element.name.includes("_")) {
+				const type = field.split("_")[0];
+				field = field.split("_")[1];
+
+				if (element.name.toLowerCase().includes("date"))
+					value = "'" + value + "'";
+
+				where += " " + field + (type == "from" || type == "min" ? " >= " : " <= ") + value;
+				count++;
+			}
+			else {
+				where += " " + field + " LIKE '%" + value + "%'";
+				count++;
+			}
+		};
+
+		if (where == " WHERE")
+			where = "";
+
+		displayTable(name, where);
+		console.log(where);
+	} catch(error) {
+		console.log(error);
+	}
+}
+
+popup.querySelector(".close").onclick = () => {
+	document.getElementById("filterBtn").classList.remove("active");
+
+	popup.classList.remove("show");
+	popup.classList.add("hide");
+};
