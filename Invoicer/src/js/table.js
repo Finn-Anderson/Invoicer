@@ -48,6 +48,8 @@ async function displayTable(name, conditions) {
 			const tr = document.createElement("tr");
 
 			for (let key in element) {
+				const td = document.createElement("td");
+				
 				let value = element[key];
 				let header = key;
 
@@ -60,8 +62,10 @@ async function displayTable(name, conditions) {
 					header = "Advertiser";
 					value = data[0].name;
 				}
-				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat"))
+				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat")) {
 					header = header + " (" + parsedData[3] + ")";
+					td.classList.add("tdCurrency");
+				}
 				else if (key.toLowerCase().includes("date") && value) {
 					const date = new Date(value);
 					value = date.toLocaleDateString();
@@ -114,7 +118,6 @@ async function displayTable(name, conditions) {
 					}
 				}
 				
-				const td = document.createElement("td");
 				td.dataset.name = key;
 				td.innerHTML = value;
 				tr.appendChild(td);
@@ -191,23 +194,6 @@ async function deleteRow(table, row) {
 	window.location.reload();
 }
 
-document.getElementById("filterBtn").onclick = () => {
-	const button = document.getElementById("filterBtn");
-
-	if (popup.classList.contains("show")) {
-		button.classList.remove("active");
-
-		popup.classList.remove("show");
-		popup.classList.add("hide");
-	}
-	else {
-		button.classList.add("active");
-
-		popup.classList.remove("hide");
-		popup.classList.add("show");
-	}
-}
-
 async function submitFilter() {
 	try {
 		const db = await loadDB();
@@ -260,15 +246,35 @@ async function submitFilter() {
 			where = "";
 
 		displayTable(name, where);
-		console.log(where);
 	} catch(error) {
 		console.log(error);
 	}
 }
 
-popup.querySelector(".close").onclick = () => {
-	document.getElementById("filterBtn").classList.remove("active");
+document.querySelectorAll(".tableNavBtn").forEach(element => {
+	element.onclick = () => {
+		const popupElement = element.parentElement.querySelector(".tableNavPopup");
 
-	popup.classList.remove("show");
-	popup.classList.add("hide");
-};
+		if (element.classList.contains("active")) {
+			element.classList.remove("active");
+
+			popupElement.classList.remove("show");
+			popupElement.classList.add("hide");
+		}
+		else {
+			element.classList.add("active");
+
+			popupElement.classList.remove("hide");
+			popupElement.classList.add("show");
+		}
+	}
+});
+
+document.querySelectorAll(".tableNavPopup").forEach(element => {
+	element.querySelector(".close").onclick = () => {
+		element.parentElement.querySelector(".tableNavBtn").classList.remove("active");
+
+		element.classList.remove("show");
+		element.classList.add("hide");
+	};
+});

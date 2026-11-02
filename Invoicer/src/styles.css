@@ -132,6 +132,9 @@ button:active, form input[type="submit"]:active {
 	transform: translateY(1px);
 	background-color: #7070da;
 }
+button:hover #filter, button:active #filter, button.active #filter {
+	background-color: #f6f6f6;
+}
 
 form input[type="submit"] {
 	margin-top: 24px;
@@ -233,7 +236,7 @@ select {
 	padding: 4px 9.25px;
 }
 
-#tableControls #addBtn {
+#tableControls button:not(:last-child) {
 	margin-left: 4px;
 }
 
@@ -284,15 +287,17 @@ table td.success, table td.inconclusive, table td.failure {
 #table tr th:last-child {
 	background-color: transparent;
 }
-
 tr:hover #delBtn {
 	opacity: 1;
 }
+table td.tdCurrency {
+	text-align: right;
+}
 
-#filterContainer {
+.tableNavContainer {
 	position: relative;
 }
-#filterBtn {
+.tableNavBtn {
 	width: 100%;
 	height: 100%;
 }
@@ -305,23 +310,32 @@ tr:hover #delBtn {
 	background-color: #0f0f0f;
 	clip-path: polygon(33% 100%, 66% 85%, 66% 50%, 100% 0%, 0% 0%, 33% 50%);
 }
-#popupfilter {
+#tableControls #printBtn {
+	padding: 4px 8px;
+}
+#tableControls #printBtn span {
+	font-size: 16px;
+}
+#tableControls #printBtn span {
+	color: #0f0f0f
+}
+#tableControls .tableNavPopup {
 	position: absolute;
 	top: 100%;
 	right: 100%;
 	flex-direction: column;
 	animation: hide 0s forwards;
 }
-#popupfilter.show {
+#tableControls .tableNavPopup.show {
 	animation: popup 0.2s forwards;
 }
-#popupfilter.hide {
+#tableControls .tableNavPopup.hide {
 	animation: hide 0.2s forwards;
 }
-#popupfilter h2 {
+#tableControls .tableNavPopup h2 {
 	margin-bottom: 12px;
 }
-#popupfilter .close {
+#tableControls .tableNavPopup .close {
 	padding: 8px;
 }
 
@@ -350,7 +364,7 @@ tr:hover #delBtn {
 }
 
 @media (prefers-color-scheme: dark) {
-	:root, #popupdata, #popupfilter, select, input, button, div a {
+	:root, #popupdata, #tableControls .tableNavPopup, select, #tableControls #printBtn span, input, button, div a {
 		color: #f6f6f6;
 	}
 
@@ -372,7 +386,7 @@ tr:hover #delBtn {
 		background-color: #f6f6f6;
 	}
 
-	#popupdata, #popupfilter {
+	#popupdata, #tableControls .tableNavPopup {
 		background-color: #2f2f2f;
 	}
 

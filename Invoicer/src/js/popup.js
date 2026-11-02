@@ -58,16 +58,22 @@ async function displayMenu() {
 		pamount.innerHTML = "Amount (" + parsedData[3] + ")";
 		popupdata.appendChild(pamount);
 		const iamount = document.createElement("input");
+		iamount.value = "0.00";
 		iamount.type = "currency";
+		iamount.step = "0.01";
 		iamount.required = true;
+		iamount.addEventListener("change", alterDecimals, false);
 		popupdata.appendChild(iamount);
 
 		const pvat = document.createElement("p");
 		pvat.innerHTML = "VAT (" + parsedData[3] + ")";
 		popupdata.appendChild(pvat);
 		const ivat = document.createElement("input");
+		ivat.value = "0.00";
 		ivat.type = "currency";
+		ivat.step = "0.01";
 		ivat.required = true;
+		ivat.addEventListener("change", alterDecimals, false);
 		popupdata.appendChild(ivat);
 
 		const pdate = document.createElement("p");
@@ -99,8 +105,11 @@ async function displayMenu() {
 		ppaid.innerHTML = "Paid (" + parsedData[3] + ")";
 		popupdata.appendChild(ppaid);
 		const ipaid = document.createElement("input");
+		ipaid.value = "0.00";
 		ipaid.type = "currency";
+		ipaid.step = "0.01";
 		ipaid.required = true;
+		ipaid.addEventListener("change", alterDecimals, false);
 		popupdata.appendChild(ipaid);
 
 		const pdate = document.createElement("p");
@@ -116,6 +125,11 @@ async function displayMenu() {
 	button.type = "submit";
 	button.innerHTML = "Submit";
 	popupdata.appendChild(button);
+}
+
+function alterDecimals(event) {
+	const value = Number(event.target.value).toFixed(2);
+	event.target.value = value;
 }
 
 const MessageStatus = {

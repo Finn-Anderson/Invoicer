@@ -8,6 +8,7 @@
 		<script type="module" src="js/checkforfile.js" defer></script>
 		<script type="module" src="js/table.js" defer></script>
 		<script type="module" src="js/popup.js" defer></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	</head>
 	<nav>
 		<a href="/"><img src="assets/invoicer.png" alt="Incoiver logo" /></a>
@@ -19,13 +20,26 @@
 			<div id="tableContainer">
 				<div id="tableControls">
 					<button id="addBtn">+</button>
-					<div id="filterContainer">
-						<button id="filterBtn">
+					<div class="tableNavContainer">
+						<button id="filterBtn" class="tableNavBtn">
 							<span id="filter"></span>
 						</button>
-						<div id="popupfilter">
+						<div id="popupfilter" class="tableNavPopup">
 							<h2>Filter</h2>
 							<button class="close">X</button>
+						</div>
+					</div>
+					<div class="tableNavContainer">
+						<button id="printBtn" class="tableNavBtn">
+							<span class="fa fa-print"></span>
+						</button>
+						<div id="popupPrint" class="tableNavPopup">
+							<h2>Print Options</h2>
+							<button class="close">X</button>
+							<input type="text" id="title"></input>
+							// input section to check and order selected rows (buttons with numbers, concat on reclick)
+							<checkbox>Tally Total</checkbox>
+							<checkbox>Row Total</checkbox>
 						</div>
 					</div>
 				</div>
