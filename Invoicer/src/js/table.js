@@ -216,7 +216,7 @@ async function submitFilter() {
 				if (typeDB() == "mysql")
 					select = "?";
 				
-				const data = await db.select("SELECT id FROM Advertisers WHERE name LIKE " + select, ["%" + value + "%"]);
+				const data = await db.select("SELECT id FROM Advertisers WHERE name LIKE '%" + value + "%'");
 
 				let list = "(";
 				for await (const result of data)

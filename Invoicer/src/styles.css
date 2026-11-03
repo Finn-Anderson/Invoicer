@@ -199,7 +199,7 @@ select {
 	animation: hide 0s forwards;
 }
 
-#popupdata, #popupfilter {
+#popupdata, #popupfilter, .dropdown {
 	position: relative;
 	color: #0f0f0f;
 	background-color: #d6d6d6;
@@ -211,6 +211,24 @@ select {
 #popupdata h2, #popupfilter h2 {
 	margin-top: 0px;
 	margin-bottom: 24px;
+}
+
+#popupdata > div {
+	position: relative;
+	height: 37.19px;
+}
+.dropdown {
+	position: absolute;
+	flex-direction: column;
+	z-index: 1;
+	top: 100%;
+	left: 0;
+	padding: 6px;
+	width: calc(100% - 12px);
+	animation: hide 0s forwards;
+}
+.dropdown button:not(:last-child) {
+	margin-bottom: 6px;
 }
 
 #tableContainer {
@@ -326,10 +344,10 @@ table td.tdCurrency {
 	flex-direction: column;
 	animation: hide 0s forwards;
 }
-#tableControls .tableNavPopup.show {
+#tableControls .tableNavPopup.show, .dropdown.show {
 	animation: popup 0.2s forwards;
 }
-#tableControls .tableNavPopup.hide {
+#tableControls .tableNavPopup.hide, .dropdown.hide {
 	animation: hide 0.2s forwards;
 }
 #tableControls .tableNavPopup h2 {
@@ -364,7 +382,7 @@ table td.tdCurrency {
 }
 
 @media (prefers-color-scheme: dark) {
-	:root, #popupdata, #tableControls .tableNavPopup, select, #tableControls #printBtn span, input, button, div a {
+	:root, #popupdata, .dropdown, #tableControls .tableNavPopup, select, #tableControls #printBtn span, input, button, div a {
 		color: #f6f6f6;
 	}
 
@@ -386,7 +404,7 @@ table td.tdCurrency {
 		background-color: #f6f6f6;
 	}
 
-	#popupdata, #tableControls .tableNavPopup {
+	#popupdata, .dropdown, #tableControls .tableNavPopup {
 		background-color: #2f2f2f;
 	}
 

@@ -34,16 +34,28 @@ async function displayMenu() {
 	message.id = "message";
 	popupdata.appendChild(message);
 
+	const div = document.createElement("div");
+
 	if (page != "payment") {
 		const padvertiser = document.createElement("p");
 		padvertiser.innerHTML = "Advertiser";
 		popupdata.appendChild(padvertiser);
 		const iadvertiser = document.createElement("input");
+		iadvertiser.name = "advertiser";
 		iadvertiser.required = true;
-		popupdata.appendChild(iadvertiser);
+		div.appendChild(iadvertiser);
 
-		if (page == "invoice")
-			iadvertiser.addEventListener("change", search, false);
+		if (page == "invoice") {
+			iadvertiser.addEventListener("keyup", search, false);
+			iadvertiser.addEventListener("focusin", search, false);
+			iadvertiser.addEventListener("focusout", hideSearch, false);
+
+			const dropdown = document.createElement("div");
+			dropdown.classList.add("dropdown");
+			div.appendChild(dropdown);
+		}
+
+		popupdata.appendChild(div);
 	}
 
 	if (page == "invoice") {
@@ -97,9 +109,18 @@ async function displayMenu() {
 		pinvoiceno.innerHTML = "Invoice Number";
 		popupdata.appendChild(pinvoiceno);
 		const iinvoiceno = document.createElement("input");
+		iinvoiceno.name = "invoiceNo";
 		iinvoiceno.required = true;
-		iinvoiceno.addEventListener("change", search, false);
-		popupdata.appendChild(iinvoiceno);
+		iinvoiceno.addEventListener("keyup", search, false);
+		iinvoiceno.addEventListener("focusin", search, false);
+		iinvoiceno.addEventListener("focusout", hideSearch, false);
+		div.appendChild(iinvoiceno);
+
+		const dropdown = document.createElement("div");
+		dropdown.classList.add("dropdown");
+		div.appendChild(dropdown);
+		
+		popupdata.appendChild(div);
 
 		const ppaid = document.createElement("p");
 		ppaid.innerHTML = "Paid (" + parsedData[3] + ")";
@@ -147,10 +168,14 @@ async function submitPopupData(event) {
 	let message = document.getElementById("message");
 	let success = MessageStatus.Success;
 
-	inputs.forEach(element => {
-		if (element.required && !element.value)
-			success = MessageStatus.Failed;
-	});
+	if (bValidSearch) {
+		inputs.forEach(element => {
+			if (element.required && !element.value)
+				success = MessageStatus.Failed;
+		});
+	}
+	else
+		success = MessageStatus.Empty;
 
 	if (success == MessageStatus.Success) {
 		const db = await loadDB();
@@ -260,6 +285,78 @@ function hidePopupMenu() {
 	popupmenu.style.animation = "hide 0.2s forwards";
 }
 
+let bValidSearch = false;
 async function search(event) {
-	// Use as search if creating invoice
+	const dropdown = document.querySelector(".dropdown");
+
+	console.log(event.target.value);
+
+	try {
+		if (event.target.value.length == 0)
+			throw "bad";
+
+		const db = await loadDB();
+		let result = null;
+
+		if (event.target.name == "advertiser")
+			result = await db.select("SELECT name FROM Advertisers WHERE name LIKE '%" + event.target.value + "%' LIMIT 5");
+		else
+			result = await db.select("SELECT invoiceNo FROM Invoices WHERE invoiceNo LIKE '%" + event.target.value + "%' LIMIT 5");
+
+		bValidSearch = result.length > 0;
+
+		if (!bValidSearch)
+			throw "bad";
+
+		dropdown.innerHTML = "";
+
+		for (const element of result) {
+			for (const key in element) {
+				if (element[key] != event.target.value)
+					continue;
+
+				return;
+			}
+		}
+
+		result.forEach(element => {
+			for (const key in element) {
+				const value = element[key];
+
+				const button = document.createElement("button");
+				button.innerHTML = value;
+				button.value = value;
+				button.onclick = () => { setInputToSearchValue(dropdown, event.target, value) };
+				dropdown.appendChild(button);
+			}
+		});
+
+		if (!dropdown.classList.contains("show")) {
+			dropdown.classList.remove("hide");
+			dropdown.classList.add("show");
+		}
+	} catch (error) {
+
+		bValidSearch = false;
+	}
+}
+
+function hideSearch() {
+	const dropdown = document.querySelector(".dropdown");
+
+	if (!dropdown.classList.contains("hide")) {
+		dropdown.classList.remove("show");
+		dropdown.classList.add("hide");
+	}
+
+	setTimeout(() => {dropdown.innerHTML = ""}, 200);
+}
+
+function setInputToSearchValue(dropdown, input, value) {
+	input.value = value;
+
+	if (!dropdown.classList.contains("hide")) {
+		dropdown.classList.remove("show");
+		dropdown.classList.add("hide");
+	}
 }
