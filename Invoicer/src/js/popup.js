@@ -1,4 +1,4 @@
-import { loadDB, typeDB } from "./includes/db.js";
+import { loadDB, setupValuesList } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
 
 let page = window.location.search.split("/?(.*)/s").pop();
@@ -183,9 +183,7 @@ async function submitPopupData(event) {
 		if (db) {
 			if (event.target.children[1].name == "advertiser") {
 				try {
-					let list = "($1)";
-					if (typeDB() == "mysql")
-						list = "(?)";
+					let list = setupValuesList(1);
 
 					//await db.execute("DROP TABLE IF EXISTS Advertisers");
 					await db.execute("CREATE TABLE IF NOT EXISTS Advertisers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, UNIQUE(name))");
@@ -201,21 +199,15 @@ async function submitPopupData(event) {
 			}
 			else if (event.target.children[1].name == "invoice") {
 				try {
-					let list = "($1, $2, $3, $4, $5, $6)";
-					let select = "$1"
-
-					if (typeDB() == "mysql") {
-						list = "(?, ?, ?, ?, ?, ?)";
-						select = "?";
-					}
-
-					const result = await db.select("SELECT id FROM Advertisers WHERE name = " + select, [inputs[0].value]);
+					const result = await db.select("SELECT id FROM Advertisers WHERE name = " + inputs[0].value);
 					if (result.length == 0) throw "empty";
 
 					//await db.execute("DROP TABLE IF EXISTS Invoices");
 					//await db.execute("DROP TABLE IF EXISTS Payments");
 					await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount DECIMAL NOT NULL, vat DECIMAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
 					await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount INTEGER NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo))");
+
+					let list = setupValuesList(6);
 
 					await db.execute("INSERT INTO Invoices (invoiceNo, advertiserID, amount, vat, date, dueDate) VALUES " + list,
 						[inputs[1].value, result[0].id, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value]
@@ -232,16 +224,10 @@ async function submitPopupData(event) {
 			}
 			else {
 				try {
-					let list = "($1, $2, $3)";
-					let select = "$1"
-
-					if (typeDB() == "mysql") {
-						list = "(?, ?, ?)";
-						select = "?";
-					}
-
-					const result = await db.select("SELECT invoiceNo, amount, vat FROM Invoices WHERE invoiceNo = " + select, [inputs[0].value]);
+					const result = await db.select("SELECT invoiceNo, amount, vat FROM Invoices WHERE invoiceNo = " + inputs[0].value);
 					if (result.length == 0) throw "empty";
+
+					let list = setupValuesList(3);
 
 					await db.execute("INSERT INTO Payments (invoiceNo, amount, date) VALUES " + list,
 						[inputs[0].value, inputs[1].value, inputs[2].value]

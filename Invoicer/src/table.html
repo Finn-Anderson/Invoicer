@@ -36,10 +36,19 @@
 						<div id="popupPrint" class="tableNavPopup">
 							<h2>Print Options</h2>
 							<button class="close">X</button>
+							<p>Title</p>
 							<input type="text" id="title"></input>
-							// input section to check and order selected rows (buttons with numbers, concat on reclick)
-							<checkbox>Tally Total</checkbox>
-							<checkbox>Row Total</checkbox>
+							<p>Columns</p>
+							<div id="columns"></div>
+							<p>Extras</p>
+							<div>
+								<input type="checkbox" id="tallyTotal" name="tallyTotal"></input>
+								<label for="tallyTotal">Tally Total</label>
+							</div>
+							<div>
+								<input type="checkbox" id="rowTotal" name="rowTotal"></input>
+								<label for="rowTotal">Row Total</label>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -52,4 +61,5 @@
 			</div>
 		</main>
 	</body>
+	<iframe src=""></iframe>
 </html>

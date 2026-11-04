@@ -24,3 +24,29 @@ export async function loadDB() {
 export function typeDB() {
 	return type
 }
+
+export async function dbTableHeaders(db, tableName) {
+	let command = "";
+	if (type == "sqlite")
+		command = "PRAGMA table_info(" + tableName + ");";
+	else
+		command = "SELECT column_name FROM information_schema.columns WHERE table_name = '" + tableName + "';";
+
+	return await db.select(command);
+}
+
+export function setupValuesList(amount) {
+	let select = "(";
+
+	for (let i = 0; i < amount; i++) {
+		if (type == "mysql")
+			select += "?, ";
+		else
+			select += "$1, ";
+	}
+
+	select.slice(0, -2);
+	select += ")";
+
+	return select;
+}

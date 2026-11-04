@@ -1,4 +1,4 @@
-import { loadDB, typeDB } from "./includes/db.js";
+import { loadDB, dbTableHeaders } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
 
 const table = document.getElementById("table");
@@ -25,6 +25,7 @@ async function displayTable(name, conditions) {
 			order = " ORDER BY id ASC";
 
 		const result = await db.select("SELECT * FROM " + name + conditions + order);
+		const parsedData = await read(display);
 
 		for (let i = table.children.length - 1; i > -1; i--) {
 			let element = table.children[i];
@@ -34,88 +35,147 @@ async function displayTable(name, conditions) {
 			table.removeChild(element);
 		}
 
-		let bGenerateHeaders = true;
-		if (table.children.length > 0)
-			bGenerateHeaders = false;
+		if (name == "Advertisers") {
+			document.getElementById("tallyTotal").parentElement.remove();
+			document.getElementById("rowTotal").parentElement.remove();
+			document.getElementById("popupPrint").lastChild.previousElementSibling.remove();
+		}
 
-		const thr = document.createElement("tr");
-		if (bGenerateHeaders)
+		if (table.children.length == 0) {
+			const thr = document.createElement("tr");
 			table.appendChild(thr);
 
-		const parsedData = await read(display);
+			const headers = await dbTableHeaders(db, name);
+			if (name == "Invoices")
+				[headers[0], headers[1]] = [headers[1], headers[0]]
 
-		for await (const element of result) {
+			if (name == "Payments") {
+				const th = document.createElement("th");
+				th.innerHTML = "Advertiser";
+				thr.appendChild(th);
+			}
+
+			for (const header of headers) {
+				let h = header.name;
+
+				if (h == "advertiserID")
+					h = "Advertiser";
+				else if (h.toLowerCase().includes("amount") || h.toLowerCase().includes("vat"))
+					h = h + " (" + parsedData[3] + ")";
+
+				const title = (h.charAt(0).toUpperCase() + h.slice(1)).replace(/([A-Z])/g, ' $1').trim();
+
+				const th = document.createElement("th");
+				th.innerHTML = title;
+				thr.appendChild(th);
+
+				const p = document.createElement("p");
+				p.innerHTML = title;
+
+				const input = document.createElement("input")
+				input.name = h;
+				input.addEventListener("change", submitFilter, false);
+				
+				if (h.toLowerCase().includes("date") || h.includes(parsedData[3])) {
+					if (h.toLowerCase().includes("date"))
+						input.type = "date";
+					else
+						input.type = "currency";
+
+					const p2 = p.cloneNode(true);
+					const input2 = input.cloneNode(true);
+					input2.addEventListener("change", submitFilter, false);
+
+					let word1 = "From";
+					let word2 = "To";
+					if (h.includes(parsedData[3])) {
+						word1 = "Min";
+						word2 = "Max";
+					}
+					
+					p.innerHTML = word1 + " " + title;
+					popup.appendChild(p);
+					input.name = word1.toLowerCase() + "_" + h;
+					popup.appendChild(input);
+					
+					p2.innerHTML = word2 + " " + title;
+					popup.appendChild(p2);
+					input2.name = word2.toLowerCase() + "_" + h;
+					popup.appendChild(input2);
+				}
+				else {
+					popup.appendChild(p);
+					popup.appendChild(input);
+				}
+
+				const columnContainer = document.getElementById("columns");
+				const container = document.createElement("div");
+
+				const icheckbox = document.createElement("input");
+				icheckbox.type = "checkbox";
+				icheckbox.id = h;
+				icheckbox.name = h;
+				const lcheckbox = document.createElement("label");
+				lcheckbox.setAttribute("for", h);
+				lcheckbox.innerHTML = title;
+
+				container.appendChild(icheckbox);
+				container.appendChild(lcheckbox);
+				columnContainer.appendChild(container);
+			}
+
+			if (name == "Invoices") {
+				const th = document.createElement("th");
+				th.innerHTML = "Paid";
+				thr.appendChild(th);
+			}
+
+			const th = document.createElement("th");
+			th.innerHTML = "";
+			thr.appendChild(th);
+		}
+
+		for await (let element of result) {
 			const tr = document.createElement("tr");
+			let e = {};
+			if (name == "Invoices") {
+				for (let key in element) {
+					if (key == "advertiserID") {
+						let e2 = {};
+						e2[key] = element[key];
+						Object.assign(e2, e);
+						e = e2
+					}
+					else
+						e[key] = element[key];
+				}
+
+				element = e;
+			}
 
 			for (let key in element) {
 				const td = document.createElement("td");
 				
 				let value = element[key];
-				let header = key;
 
 				if (key == "advertiserID") {
-					let select = "$1";
-					if (typeDB() == "mysql")
-						select = "?";
-
-					const data = await db.select("SELECT * FROM Advertisers WHERE id = " + select, [value]);
-					header = "Advertiser";
+					const data = await db.select("SELECT name FROM Advertisers WHERE id = " + value);
 					value = data[0].name;
 				}
-				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat")) {
-					header = header + " (" + parsedData[3] + ")";
-					td.classList.add("tdCurrency");
+				else if (name == "Payments" && key == "invoiceNo") {
+					const data = await db.select("SELECT advertiserID FROM Invoices WHERE invoiceNo = " + value);
+					const data1 = await db.select("SELECT name FROM Advertisers WHERE id = " + data[0].advertiserID);
+
+					const td1 = document.createElement("td");
+					td1.dataset.name = "advertiser";
+					td1.innerHTML = data1[0].name;
+					tr.appendChild(td1);
 				}
+				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat"))
+					td.classList.add("tdCurrency");
 				else if (key.toLowerCase().includes("date") && value) {
 					const date = new Date(value);
 					value = date.toLocaleDateString();
-				}
-
-				if (bGenerateHeaders && result[0] == element) {
-					const title = (header.charAt(0).toUpperCase() + header.slice(1)).replace(/([A-Z])/g, ' $1').trim();
-
-					const th = document.createElement("th");
-					th.innerHTML = title;
-					thr.appendChild(th);
-
-					const p = document.createElement("p");
-					p.innerHTML = title;
-
-					const input = document.createElement("input")
-					input.name = key;
-					input.addEventListener("change", submitFilter, false);
-					
-					if (header.toLowerCase().includes("date") || header.toLowerCase().includes(parsedData[3])) {
-						if (header.toLowerCase().includes("date"))
-							input.type = "date";
-						else
-							input.type = "currency";
-
-						const p2 = p.cloneNode(true);
-						const input2 = input.cloneNode(true);
-						input2.addEventListener("change", submitFilter, false);
-
-						let word1 = "From";
-						let word2 = "To";
-						if (header.toLowerCase().includes(parsedData[3])) {
-							word1 = "Min";
-							word2 = "Max";
-						}
-						
-						p.innerHTML = word1 + " " + title;
-						popup.appendChild(p);
-						input.name = word1.toLowerCase() + "_" + key;
-						popup.appendChild(input);
-						
-						p2.innerHTML = word2 + " " + title;
-						popup.appendChild(p2);
-						input2.name = word2.toLowerCase() + "_" + key;
-						popup.appendChild(input2);
-					}
-					else {
-						popup.appendChild(p);
-						popup.appendChild(input);
-					}
 				}
 				
 				td.dataset.name = key;
@@ -124,17 +184,7 @@ async function displayTable(name, conditions) {
 			}
 
 			if (name == "Invoices") {
-				if (result[0] == element) {
-					const th = document.createElement("th");
-					th.innerHTML = "Paid";
-					thr.appendChild(th);
-				}
-
-				let select = "$1";
-				if (typeDB() == "mysql")
-					select = "?";
-
-				const data = await db.select("SELECT amount FROM Payments WHERE invoiceNo = " + select, [element["invoiceNo"]]);
+				const data = await db.select("SELECT amount FROM Payments WHERE invoiceNo = " + element["invoiceNo"]);
 
 				let value = 0;
 				for (let paid of data)
@@ -148,12 +198,6 @@ async function displayTable(name, conditions) {
 				td.innerHTML = bPaid ? "&#10004" : bPartial ? "&#x25d4" : "&#10006";
 				td.classList.add(bPaid ? "success" : bPartial ? "inconclusive" : "failure");
 				tr.appendChild(td);
-			}
-
-			if (result[0] == element) {
-				const th = document.createElement("th");
-				th.innerHTML = "";
-				thr.appendChild(th);
 			}
 
 			const td = document.createElement("td");
@@ -212,10 +256,6 @@ async function submitFilter() {
 			let field = element.name;
 
 			if (element.name == "advertiserID") {
-				let select = "$1";
-				if (typeDB() == "mysql")
-					select = "?";
-				
 				const data = await db.select("SELECT id FROM Advertisers WHERE name LIKE '%" + value + "%'");
 
 				let list = "(";
