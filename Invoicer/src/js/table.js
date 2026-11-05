@@ -13,10 +13,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("tableH1").innerHTML = name;
 
-	displayTable(name, "");
+	displayTable(name, "", "");
 });
 
-async function displayTable(name, conditions) {
+async function displayTable(name, conditions, having) {
 	try {
 		const db = await loadDB();
 
@@ -24,7 +24,13 @@ async function displayTable(name, conditions) {
 		if (name == "Advertisers")
 			order = " ORDER BY id ASC";
 
-		const result = await db.select("SELECT * FROM " + name + conditions + order);
+		let result;
+
+		if (name == "Invoices")
+			result = await db.select("SELECT Invoices.*, SUM(Payments.amount) AS paid FROM Invoices LEFT JOIN Payments ON Payments.invoiceNo = Invoices.invoiceNo" + conditions + " GROUP BY Invoices.invoiceNo" + having + order);
+		else
+			result = await db.select("SELECT * FROM " + name + conditions + having + order);
+
 		const parsedData = await read(display);
 
 		for (let i = table.children.length - 1; i > -1; i--) {
@@ -113,10 +119,10 @@ async function displayTable(name, conditions) {
 
 				const icheckbox = document.createElement("input");
 				icheckbox.type = "checkbox";
-				icheckbox.id = h;
-				icheckbox.name = h;
+				icheckbox.id = header.name;
+				icheckbox.name = title;
 				const lcheckbox = document.createElement("label");
-				lcheckbox.setAttribute("for", h);
+				lcheckbox.setAttribute("for", header.name);
 				lcheckbox.innerHTML = title;
 
 				container.appendChild(icheckbox);
@@ -128,6 +134,51 @@ async function displayTable(name, conditions) {
 				const th = document.createElement("th");
 				th.innerHTML = "Paid";
 				thr.appendChild(th);
+
+				const ppaid = document.createElement("p");
+				ppaid.innerHTML = "Paid Status";
+				popup.appendChild(ppaid);
+
+				const paidselect = document.createElement("select");
+				paidselect.name = "paid";
+				const option1 = document.createElement("option");
+				option1.value = "none";
+				option1.innerHTML = "None";
+				const option2 = document.createElement("option");
+				option2.value = "unpaid";
+				option2.innerHTML = "Unpaid";
+				const option3 = document.createElement("option");
+				option3.value = "unpaid + partial";
+				option3.innerHTML = "Unpaid & Partial";
+				const option4 = document.createElement("option");
+				option4.value = "partial";
+				option4.innerHTML = "Partial";
+				const option5 = document.createElement("option");
+				option5.value = "paid";
+				option5.innerHTML = "Paid";
+				paidselect.appendChild(option1);
+				paidselect.appendChild(option2);
+				paidselect.appendChild(option3);
+				paidselect.appendChild(option4);
+				paidselect.appendChild(option5);
+				popup.appendChild(paidselect);
+
+				paidselect.addEventListener("change", submitFilter, false);
+
+				const columnContainer = document.getElementById("columns");
+				const container = document.createElement("div");
+
+				const icheckbox = document.createElement("input");
+				icheckbox.type = "checkbox";
+				icheckbox.id = "paid";
+				icheckbox.name = "Paid";
+				const lcheckbox = document.createElement("label");
+				lcheckbox.setAttribute("for", "paid");
+				lcheckbox.innerHTML = "Paid";
+
+				container.appendChild(icheckbox);
+				container.appendChild(lcheckbox);
+				columnContainer.appendChild(container);
 			}
 
 			const th = document.createElement("th");
@@ -177,26 +228,17 @@ async function displayTable(name, conditions) {
 					const date = new Date(value);
 					value = date.toLocaleDateString();
 				}
+				else if (key == "paid") {
+					const bPaid = value == element["amount"] + element["vat"];
+					const bPartial = value > 0;
+					
+					td.title = parsedData[3] + (value != null ? value : 0);
+					value = bPaid ? "&#10004" : bPartial ? "&#x25d4" : "&#10006";
+					td.classList.add(bPaid ? "success" : bPartial ? "inconclusive" : "failure");
+				}
 				
 				td.dataset.name = key;
 				td.innerHTML = value;
-				tr.appendChild(td);
-			}
-
-			if (name == "Invoices") {
-				const data = await db.select("SELECT amount FROM Payments WHERE invoiceNo = " + element["invoiceNo"]);
-
-				let value = 0;
-				for (let paid of data)
-					value += paid.amount;
-
-				const bPaid = value == element["amount"] + element["vat"];
-				const bPartial = value > 0;
-
-				const td = document.createElement("td");
-				td.title = parsedData[3] + value;
-				td.innerHTML = bPaid ? "&#10004" : bPartial ? "&#x25d4" : "&#10006";
-				td.classList.add(bPaid ? "success" : bPartial ? "inconclusive" : "failure");
 				tr.appendChild(td);
 			}
 
@@ -234,7 +276,7 @@ async function deleteRow(table, row) {
 		return;
 	
 	const db = await loadDB();
-	const result = await db.execute("DELETE FROM " + table + " WHERE " + id);
+	await db.execute("DELETE FROM " + table + " WHERE " + id);
 	window.location.reload();
 }
 
@@ -243,13 +285,15 @@ async function submitFilter() {
 		const db = await loadDB();
 		const inputs = popup.querySelectorAll("input");
 		let where = " WHERE";
-		let count = 0;
+		let whereCount = 0;
+		let having = " HAVING";
+		let havingCount = 0;
 
 		for await (const element of inputs) {
 			if (element.value.length == 0)
 				continue;
 
-			if (count > 0)
+			if (whereCount > 0)
 				where += " AND"
 
 			let value = element.value;
@@ -264,7 +308,6 @@ async function submitFilter() {
 				list = list.substring(0, list.length - 1) + ")";
 
 				where += " advertiserID IN " + list;
-				count++;
 			}
 			else if (element.name.includes("_")) {
 				const type = field.split("_")[0];
@@ -274,18 +317,51 @@ async function submitFilter() {
 					value = "'" + value + "'";
 
 				where += " " + field + (type == "from" || type == "min" ? " >= " : " <= ") + value;
-				count++;
 			}
 			else {
 				where += " " + field + " LIKE '%" + value + "%'";
-				count++;
 			}
+
+			whereCount++;
 		};
+
+		const selects = popup.querySelectorAll("select");
+		for (const select of selects) {
+			if (havingCount > 0)
+				having += " AND"
+
+			let value = select.value;
+			let field = select.name;
+
+			console.log(select.name);
+
+			if (field.includes("paid")) {
+				if (value == "unpaid")
+					having += " " + field + " IS NULL";
+				else if (value == "unpaid + partial") {
+					having += " " + field + " IS NULL OR (" + field + " > 0 AND " + field + " < SUM(Invoices.amount + Invoices.vat))";
+				}
+				else if (value == "partial")
+					having += " " + field + " > 0 AND " + field + " < SUM(Invoices.amount + Invoices.vat)";
+				else if (value == "paid")
+					having += " " + field + " = SUM(Invoices.amount + Invoices.vat)";
+				else
+					continue;
+			}
+			else {
+				having += " " + field + " = " + value;
+			}
+
+			havingCount++;
+		}
 
 		if (where == " WHERE")
 			where = "";
 
-		displayTable(name, where);
+		if (having == " HAVING")
+			having = "";
+
+		displayTable(name, where, having);
 	} catch(error) {
 		console.log(error);
 	}
@@ -294,6 +370,20 @@ async function submitFilter() {
 document.querySelectorAll(".tableNavBtn").forEach(element => {
 	element.onclick = () => {
 		const popupElement = element.parentElement.querySelector(".tableNavPopup");
+		const popups = document.querySelectorAll(".tableNavPopup");
+
+		for (const popup of popups) {
+			if (popup == popupElement)
+				continue;
+
+			const btn = popup.parentElement.querySelector(".tableNavBtn");
+
+			if (btn.classList.contains("active")) {
+				btn.classList.remove("active");
+				popup.classList.remove("show");
+				popup.classList.add("hide");
+			}
+		}
 
 		if (element.classList.contains("active")) {
 			element.classList.remove("active");

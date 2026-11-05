@@ -8,6 +8,7 @@
 		<script type="module" src="js/checkforfile.js" defer></script>
 		<script type="module" src="js/table.js" defer></script>
 		<script type="module" src="js/popup.js" defer></script>
+		<script type="module" src="js/print.js" defer></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	</head>
 	<nav>
@@ -36,19 +37,22 @@
 						<div id="popupPrint" class="tableNavPopup">
 							<h2>Print Options</h2>
 							<button class="close">X</button>
+							<p id="message"></p>
 							<p>Title</p>
 							<input type="text" id="title"></input>
 							<p>Columns</p>
 							<div id="columns"></div>
 							<p>Extras</p>
 							<div>
-								<input type="checkbox" id="tallyTotal" name="tallyTotal"></input>
-								<label for="tallyTotal">Tally Total</label>
-							</div>
-							<div>
-								<input type="checkbox" id="rowTotal" name="rowTotal"></input>
+								<input type="checkbox" id="rowTotal" name="Row Total"></input>
 								<label for="rowTotal">Row Total</label>
 							</div>
+							<div>
+								<input type="checkbox" id="tallyTotal" name="Tally Total"></input>
+								<label for="tallyTotal">Tally Total</label>
+							</div>
+							<ol></ol>
+							<button id="printSubmit">Print</button>
 						</div>
 					</div>
 				</div>
@@ -61,5 +65,5 @@
 			</div>
 		</main>
 	</body>
-	<iframe src=""></iframe>
+	<iframe src="print.html"></iframe>
 </html>

@@ -362,6 +362,9 @@ table td.tdCurrency {
 	top: 100%;
 	right: 100%;
 	flex-direction: column;
+	max-height: 500px;
+	overflow-x: hidden;
+	overflow-y: auto;
 	animation: hide 0s forwards;
 }
 #tableControls .tableNavPopup.show, .dropdown.show {
@@ -385,6 +388,10 @@ table td.tdCurrency {
 }
 #columns div {
 	flex-basis: 49%;
+}
+#popupPrint button:not(.close) {
+	margin-top: 12px;
+	border-radius: 8px;
 }
 
 iframe {
@@ -464,4 +471,48 @@ iframe.print {
 @page { 
 	size: auto;  
 	margin: 0mm; 
+}
+
+@media print {
+	#popupmenu, #tableContainer, #tableH1, nav {
+		display: none;
+	}
+
+	iframe {
+		display: block;
+		padding: 8px;
+	}
+
+	h1 {
+		font-size: 18px;
+		margin: 0px;
+	}
+	#companyName {
+		margin-top: 18px;
+	}
+	#printTitle {
+		margin-top: 2px;
+		margin-bottom: 12px;
+	}
+
+	table {
+		margin: auto;
+		table-layout: fixed;
+	}
+
+	th, td {
+		font-size: 12px;
+		border: 1px solid black;
+		border-collapse: collapse;
+		padding: 0px;
+		margin: 0px;
+	}
+
+	th {
+		white-space: nowrap;
+	}
+
+	table td.tdCurrency {
+		text-align: right;
+	}
 }
