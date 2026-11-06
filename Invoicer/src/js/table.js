@@ -4,6 +4,7 @@ import { display, read } from "./includes/file.js";
 const table = document.getElementById("table");
 const popup = document.getElementById("popupfilter");
 let name = "";
+let order = "";
 
 window.addEventListener("DOMContentLoaded", () => {
 	let page = window.location.search.split("/?(.*)/s").pop();
@@ -13,6 +14,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("tableH1").innerHTML = name;
 
+	order = " ORDER BY invoiceNo DESC";
+	if (name == "Advertisers")
+		order = " ORDER BY id ASC";
+
 	displayTable(name, "", "");
 });
 
@@ -20,14 +25,9 @@ async function displayTable(name, conditions, having) {
 	try {
 		const db = await loadDB();
 
-		let order = " ORDER BY invoiceNo DESC";
-		if (name == "Advertisers")
-			order = " ORDER BY id ASC";
-
 		let result;
-
 		if (name == "Invoices")
-			result = await db.select("SELECT Invoices.*, SUM(Payments.amount) AS paid FROM Invoices LEFT JOIN Payments ON Payments.invoiceNo = Invoices.invoiceNo" + conditions + " GROUP BY Invoices.invoiceNo" + having + order);
+			result = await db.select("SELECT Invoices.*, SUM(Payments.amount) AS paid, MAX(Payments.date) as lastPaidDate FROM Invoices LEFT JOIN Payments ON Payments.invoiceNo = Invoices.invoiceNo" + conditions + " GROUP BY Invoices.invoiceNo" + having + order);
 		else
 			result = await db.select("SELECT * FROM " + name + conditions + having + order);
 
@@ -67,13 +67,28 @@ async function displayTable(name, conditions, having) {
 				if (h == "advertiserID")
 					h = "Advertiser";
 				else if (h.toLowerCase().includes("amount") || h.toLowerCase().includes("vat"))
-					h = h + " (" + parsedData[3] + ")";
+					h = h + " (" + parsedData[1] + ")";
 
 				const title = (h.charAt(0).toUpperCase() + h.slice(1)).replace(/([A-Z])/g, ' $1').trim();
 
 				const th = document.createElement("th");
 				th.innerHTML = title;
+				th.style.cursor = "pointer";
+				th.onclick = () => {
+					if (order.includes(header.name) && order.includes("DESC"))
+						order = " ORDER BY " + header.name + " ASC";
+					else
+						order = " ORDER BY " + header.name + " DESC";
+
+					document.getElementById("order").remove();
+					createIndicator(th);
+
+					submitFilter();
+				}
 				thr.appendChild(th);
+
+				if (order.includes(header.name))
+					createIndicator(th);
 
 				const p = document.createElement("p");
 				p.innerHTML = title;
@@ -82,7 +97,7 @@ async function displayTable(name, conditions, having) {
 				input.name = h;
 				input.addEventListener("change", submitFilter, false);
 				
-				if (h.toLowerCase().includes("date") || h.includes(parsedData[3])) {
+				if (h.toLowerCase().includes("date") || h.includes(parsedData[1])) {
 					if (h.toLowerCase().includes("date"))
 						input.type = "date";
 					else
@@ -94,7 +109,7 @@ async function displayTable(name, conditions, having) {
 
 					let word1 = "From";
 					let word2 = "To";
-					if (h.includes(parsedData[3])) {
+					if (h.includes(parsedData[1])) {
 						word1 = "Min";
 						word2 = "Max";
 					}
@@ -135,6 +150,10 @@ async function displayTable(name, conditions, having) {
 				th.innerHTML = "Paid";
 				thr.appendChild(th);
 
+				const th2 = document.createElement("th");
+				th2.innerHTML = "Last Paid Date";
+				thr.appendChild(th2);
+
 				const ppaid = document.createElement("p");
 				ppaid.innerHTML = "Paid Status";
 				popup.appendChild(ppaid);
@@ -161,12 +180,30 @@ async function displayTable(name, conditions, having) {
 				paidselect.appendChild(option3);
 				paidselect.appendChild(option4);
 				paidselect.appendChild(option5);
-				popup.appendChild(paidselect);
-
 				paidselect.addEventListener("change", submitFilter, false);
+				popup.appendChild(paidselect);
+					
+				const p = document.createElement("p");
+				p.innerHTML = "From" + " Last Paid Date";
+				popup.appendChild(p);
+				const input = document.createElement("input");
+				input.type = "date";
+				input.name = "From".toLowerCase() + "_lastPaidDate";
+				input.addEventListener("change", submitFilter, false);
+				popup.appendChild(input);
+				
+				const p2 = document.createElement("p");
+				p2.innerHTML = "To" + " Last Paid Date";
+				popup.appendChild(p2);
+				const input2 = document.createElement("input");
+				input2.type = "date";
+				input2.name = "To".toLowerCase() + "_lastPaidDate";
+				input2.addEventListener("change", submitFilter, false);
+				popup.appendChild(input2);
 
 				const columnContainer = document.getElementById("columns");
 				const container = document.createElement("div");
+				const container2 = document.createElement("div");
 
 				const icheckbox = document.createElement("input");
 				icheckbox.type = "checkbox";
@@ -175,10 +212,21 @@ async function displayTable(name, conditions, having) {
 				const lcheckbox = document.createElement("label");
 				lcheckbox.setAttribute("for", "paid");
 				lcheckbox.innerHTML = "Paid";
-
 				container.appendChild(icheckbox);
 				container.appendChild(lcheckbox);
+
+				const ilpdcheckbox = document.createElement("input");
+				ilpdcheckbox.type = "checkbox";
+				ilpdcheckbox.id = "lastPaidDate";
+				ilpdcheckbox.name = "Last Paid Date";
+				const llpdcheckbox = document.createElement("label");
+				llpdcheckbox.setAttribute("for", "lastPaidDate");
+				llpdcheckbox.innerHTML = "Last Paid Date";
+				container2.appendChild(ilpdcheckbox);
+				container2.appendChild(llpdcheckbox);
+
 				columnContainer.appendChild(container);
+				columnContainer.appendChild(container2);
 			}
 
 			const th = document.createElement("th");
@@ -224,15 +272,20 @@ async function displayTable(name, conditions, having) {
 				}
 				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat"))
 					td.classList.add("tdCurrency");
-				else if (key.toLowerCase().includes("date") && value) {
-					const date = new Date(value);
-					value = date.toLocaleDateString();
+				else if (key.toLowerCase().includes("date")) {
+					if (value) {
+						const date = new Date(value);
+						value = date.toLocaleDateString();
+					}
+					else {
+						value = "-"
+					}
 				}
 				else if (key == "paid") {
 					const bPaid = value == element["amount"] + element["vat"];
 					const bPartial = value > 0;
 					
-					td.title = parsedData[3] + (value != null ? value : 0);
+					td.title = parsedData[1] + (value != null ? value : 0);
 					value = bPaid ? "&#10004" : bPartial ? "&#x25d4" : "&#10006";
 					td.classList.add(bPaid ? "success" : bPartial ? "inconclusive" : "failure");
 				}
@@ -316,7 +369,20 @@ async function submitFilter() {
 				if (element.name.toLowerCase().includes("date"))
 					value = "'" + value + "'";
 
-				where += " " + field + (type == "from" || type == "min" ? " >= " : " <= ") + value;
+				let condition = " " + field + (type == "from" || type == "min" ? " >= " : " <= ") + value;
+
+				if (element.name.toLowerCase().includes("date")) {
+					if (havingCount > 0)
+						having += " AND";
+
+					having += condition;
+
+					havingCount++;
+
+					continue;
+				}
+				else 
+					where += condition;
 			}
 			else {
 				where += " " + field + " LIKE '%" + value + "%'";
@@ -327,13 +393,14 @@ async function submitFilter() {
 
 		const selects = popup.querySelectorAll("select");
 		for (const select of selects) {
+			let value = select.value;
+			if (value == "none")
+				continue;
+
 			if (havingCount > 0)
 				having += " AND"
 
-			let value = select.value;
 			let field = select.name;
-
-			console.log(select.name);
 
 			if (field.includes("paid")) {
 				if (value == "unpaid")
@@ -345,8 +412,6 @@ async function submitFilter() {
 					having += " " + field + " > 0 AND " + field + " < SUM(Invoices.amount + Invoices.vat)";
 				else if (value == "paid")
 					having += " " + field + " = SUM(Invoices.amount + Invoices.vat)";
-				else
-					continue;
 			}
 			else {
 				having += " " + field + " = " + value;
@@ -365,6 +430,16 @@ async function submitFilter() {
 	} catch(error) {
 		console.log(error);
 	}
+}
+
+function createIndicator(parent) {
+	const indicator = document.createElement("div");
+	indicator.id = "order";
+
+	if (order.includes("DESC"))
+		indicator.style.transform = "rotate(180deg)";
+
+	parent.appendChild(indicator);
 }
 
 document.querySelectorAll(".tableNavBtn").forEach(element => {

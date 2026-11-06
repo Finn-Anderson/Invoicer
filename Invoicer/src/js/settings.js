@@ -130,12 +130,8 @@ async function save() {
 	}
 }
 
-const start = document.getElementById("start");
-const end = document.getElementById("end");
 const company = document.getElementById("company");
 const currency = document.getElementById("currency");
-start.addEventListener("change", saveDisplay, false);
-end.addEventListener("change", saveDisplay, false);
 company.addEventListener("change", saveDisplay, false);
 currency.addEventListener("change", saveDisplay, false);
 
@@ -145,16 +141,14 @@ async function loadDisplay() {
 	else {
 		const parsedData = await read(display);
 
-		start.value = parsedData[0];
-		end.value = parsedData[1];
-		company.value = parsedData[2] ? parsedData[2] : "";
-		currency.value = parsedData[3];
+		company.value = parsedData[0] ? parsedData[0] : "";
+		currency.value = parsedData[1];
 	}
 }
 loadDisplay();
 
 async function saveDisplay() {
-	let content = start.value + "," + end.value + "," + company.value + "," + currency.value;
+	let content = company.value + "," + currency.value;
 
 	await updateFile(display, content);
 }

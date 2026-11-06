@@ -66,7 +66,7 @@ document.getElementById("printSubmit").onclick = async () => {
 				for (let i = 0; i < rows.length; i++) {
 					if (i == 0) {
 						const th = document.createElement("th");
-						th.innerHTML = "Total (" + parsedData[3] + ")";
+						th.innerHTML = "Total (" + parsedData[1] + ")";
 						printTable.children[i].appendChild(th);
 					}
 					else {
@@ -77,7 +77,7 @@ document.getElementById("printSubmit").onclick = async () => {
 						for (let j = 0; j < rows[i].children.length; j++ ) {
 							const data = rows[i].children[j];
 							const dataValue = data.title != "" ? data.title.substring(1, data.title.length) : data.innerHTML;
-							if (isNaN(parseFloat(dataValue)) || !isFinite(dataValue) || !list.includes(rows[0].children[j].innerHTML) || (!rows[0].children[j].innerHTML.includes(parsedData[3]) && !data.title.includes(parsedData[3])))
+							if (isNaN(parseFloat(dataValue)) || !isFinite(dataValue) || !list.includes(rows[0].children[j].innerHTML) || (!rows[0].children[j].innerHTML.includes(parsedData[1]) && !data.title.includes(parsedData[1])))
 								continue;
 
 							let value = parseFloat(dataValue);
@@ -110,7 +110,7 @@ document.getElementById("printSubmit").onclick = async () => {
 						continue;
 
 					if (th.innerHTML == "Paid")
-						th.innerHTML += " (" + parsedData[3] + ")";
+						th.innerHTML += " (" + parsedData[1] + ")";
 
 					printTable.children[0].appendChild(th);
 
@@ -124,7 +124,7 @@ document.getElementById("printSubmit").onclick = async () => {
 
 						printTable.children[j].appendChild(td);
 
-						if (!isNaN(parseFloat(td.innerHTML)) && isFinite(td.innerHTML) && th.innerHTML.includes(parsedData[3])) {
+						if (!isNaN(parseFloat(td.innerHTML)) && isFinite(td.innerHTML) && th.innerHTML.includes(parsedData[1])) {
 							let value = parseFloat(td.innerHTML);
 
 							if (td.dataset.name == "paid")
@@ -144,6 +144,10 @@ document.getElementById("printSubmit").onclick = async () => {
 
 		if (list.includes("Tally Total")) {
 			const tr = document.createElement("tr");
+
+			const keys = Object.keys(totals);
+			if (keys.length == 1)
+				totals[keys[0]] = Math.abs(totals[keys[0]]).toFixed(2);
 
 			for (const name of list) {
 				if (name == "Tally Total")
@@ -170,7 +174,7 @@ document.getElementById("printSubmit").onclick = async () => {
 		const main = document.querySelector("iframe").contentDocument.querySelector("main");
 		if (main.querySelector("table"))
 			main.querySelector("table").remove();
-		main.querySelectorAll("h1")[0].innerHTML = parsedData[2];
+		main.querySelectorAll("h1")[0].innerHTML = parsedData[0];
 		main.querySelectorAll("h1")[1].innerHTML = title.value;
 		main.appendChild(printTable);
 

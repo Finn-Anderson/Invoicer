@@ -67,7 +67,7 @@ async function displayMenu() {
 		popupdata.appendChild(iinvoiceno);
 
 		const pamount = document.createElement("p");
-		pamount.innerHTML = "Amount (" + parsedData[3] + ")";
+		pamount.innerHTML = "Amount (" + parsedData[1] + ")";
 		popupdata.appendChild(pamount);
 		const iamount = document.createElement("input");
 		iamount.value = "0.00";
@@ -78,7 +78,7 @@ async function displayMenu() {
 		popupdata.appendChild(iamount);
 
 		const pvat = document.createElement("p");
-		pvat.innerHTML = "VAT (" + parsedData[3] + ")";
+		pvat.innerHTML = "VAT (" + parsedData[1] + ")";
 		popupdata.appendChild(pvat);
 		const ivat = document.createElement("input");
 		ivat.value = "0.00";
@@ -123,7 +123,7 @@ async function displayMenu() {
 		popupdata.appendChild(div);
 
 		const ppaid = document.createElement("p");
-		ppaid.innerHTML = "Paid (" + parsedData[3] + ")";
+		ppaid.innerHTML = "Paid (" + parsedData[1] + ")";
 		popupdata.appendChild(ppaid);
 		const ipaid = document.createElement("input");
 		ipaid.value = "0.00";
