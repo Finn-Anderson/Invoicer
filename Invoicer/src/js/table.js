@@ -2,7 +2,7 @@ import { loadDB, dbTableHeaders } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
 
 const table = document.getElementById("table");
-const popup = document.getElementById("popupfilter");
+const popup = document.getElementById("popupfilter").querySelector(".tableDataContainer");
 let name = "";
 let order = "";
 
@@ -447,16 +447,23 @@ document.querySelectorAll(".tableNavBtn").forEach(element => {
 		const popupElement = element.parentElement.querySelector(".tableNavPopup");
 		const popups = document.querySelectorAll(".tableNavPopup");
 
-		for (const popup of popups) {
-			if (popup == popupElement)
-				continue;
+		if (!element.classList.contains("presetBtn")) {
+			for (const popup of popups) {
+				if (popup == popupElement)
+					continue;
 
-			const btn = popup.parentElement.querySelector(".tableNavBtn");
+				const btn = popup.parentElement.querySelector(".tableNavBtn");
+				const bContainsPresetBtn = popup.previousElementSibling.classList.contains("presetBtn");
 
-			if (btn.classList.contains("active")) {
-				btn.classList.remove("active");
-				popup.classList.remove("show");
-				popup.classList.add("hide");
+				if (btn.classList.contains("active")) {
+					btn.classList.remove("active");
+					popup.classList.remove("show");
+
+					if (!bContainsPresetBtn)
+						popup.classList.add("hide");
+				}
+				else if (bContainsPresetBtn)
+					popup.classList.remove("hide");
 			}
 		}
 
@@ -476,8 +483,12 @@ document.querySelectorAll(".tableNavBtn").forEach(element => {
 });
 
 document.querySelectorAll(".tableNavPopup").forEach(element => {
-	element.querySelector(".close").onclick = () => {
-		element.parentElement.querySelector(".tableNavBtn").classList.remove("active");
+	const closes = element.querySelectorAll(".close");
+	console.log();
+	closes[closes.length - 1].onclick = () => {
+		console.log("EIOJIWEJG");
+		if (element.parentElement.querySelector(".tableNavBtn"))
+			element.parentElement.querySelector(".tableNavBtn").classList.remove("active");
 
 		element.classList.remove("show");
 		element.classList.add("hide");

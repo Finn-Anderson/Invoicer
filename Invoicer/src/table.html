@@ -9,6 +9,7 @@
 		<script type="module" src="js/table.js" defer></script>
 		<script type="module" src="js/popup.js" defer></script>
 		<script type="module" src="js/print.js" defer></script>
+		<script type="module" src="js/presets.js" defer></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	</head>
@@ -27,11 +28,27 @@
 							<span id="filter"></span>
 						</button>
 						<div id="popupfilter" class="tableNavPopup">
-							<button class="presetBtn">
-								<i class="material-icons">save</i>
-							</button>
-							<h2>Filter</h2>
-							<button class="close">X</button>
+							<div class="tableNavContainer">
+								<button class="presetBtn tableNavBtn">
+									<i class="material-icons">save</i>
+								</button>
+								<div class="tableNavPopup">
+									<h2>Presets</h2>
+									<button class="close preset">X</button>
+									<p id="message"></p>
+									<div class="presetContainer"></div>
+									<p>Name</p>
+									<input></input>
+									<div>
+										<button class="presetLoad" name="filterpresets">Load</button>
+										<button class="presetSave" name="filterpresets">Save</button>
+									</div>
+								</div>
+							</div>
+							<div class="tableDataContainer">
+								<h2>Filter</h2>
+								<button class="close">X</button>
+							</div>
 						</div>
 					</div>
 					<div class="tableNavContainer">
@@ -39,27 +56,43 @@
 							<span class="fa fa-print"></span>
 						</button>
 						<div id="popupPrint" class="tableNavPopup">
-							<button class="presetBtn">
-								<i class="material-icons">save</i>
-							</button>
-							<h2>Print Options</h2>
-							<button class="close">X</button>
-							<p id="message"></p>
-							<p>Title</p>
-							<input type="text" id="title"></input>
-							<p>Columns</p>
-							<div id="columns"></div>
-							<p>Extras</p>
-							<div>
-								<input type="checkbox" id="rowTotal" name="Row Total"></input>
-								<label for="rowTotal">Row Total</label>
+							<div class="tableNavContainer">
+								<button class="presetBtn tableNavBtn">
+									<i class="material-icons">save</i>
+								</button>
+								<div class="tableNavPopup">
+									<h2>Presets</h2>
+									<button class="close preset">X</button>
+									<p id="message"></p>
+									<div class="presetContainer"></div>
+									<p>Name</p>
+									<input></input>
+									<div>
+										<button class="presetLoad" name="filterpresets">Load</button>
+										<button class="presetSave" name="filterpresets">Save</button>
+									</div>
+								</div>
 							</div>
-							<div>
-								<input type="checkbox" id="tallyTotal" name="Tally Total"></input>
-								<label for="tallyTotal">Tally Total</label>
+							<div class="tableDataContainer">
+								<h2>Print Options</h2>
+								<button class="close">X</button>
+								<p id="message"></p>
+								<p>Title</p>
+								<input type="text" id="title" name="title"></input>
+								<p>Columns</p>
+								<div id="columns"></div>
+								<p>Extras</p>
+								<div>
+									<input type="checkbox" id="rowTotal" name="Row Total"></input>
+									<label for="rowTotal">Row Total</label>
+								</div>
+								<div>
+									<input type="checkbox" id="tallyTotal" name="Tally Total"></input>
+									<label for="tallyTotal">Tally Total</label>
+								</div>
+								<ol></ol>
+								<button id="printSubmit">Print</button>
 							</div>
-							<ol></ol>
-							<button id="printSubmit">Print</button>
 						</div>
 					</div>
 				</div>

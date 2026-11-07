@@ -6,9 +6,13 @@ export async function read(filename) {
 	let data = await readFile(filename, { baseDir: BaseDirectory.AppLocalData });
 
 	let decodedData = new TextDecoder().decode(data);
-	let parsedData = decodedData.split(",");
 
-	return parsedData;
+	if (decodedData == "")
+		return [];
+	else if (decodedData[0] == "[" && decodedData[decodedData.length - 1] == "]")
+		return JSON.parse(decodedData);
+	else
+		return decodedData.split(",");
 }
 
 export async function fileExists(filename, bCreate = false, location = "") {
@@ -34,6 +38,9 @@ export async function updateFile(filename, data) {
 			file = await create(filename, { baseDir: BaseDirectory.AppLocalData });
 		else
 			file = await open(filename, { write: true, truncate: true, baseDir: BaseDirectory.AppLocalData });
+
+		if (Array.isArray(data))
+			data = JSON.stringify(data);
 
 		await file.write(new TextEncoder().encode(data));
 		await file.close();
