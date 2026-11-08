@@ -1,20 +1,23 @@
 import { read, fileExists, updateFile } from "./includes/file.js";
 
-document.querySelectorAll(".presetBtn").onclick = async (event) => {
-	const filename = event.target.name;
-	const parent = event.target.parentElement.parentElement;
-	const container = parent.querySelector(".presetContainer");
+document.querySelectorAll(".presetBtn").forEach(element => {
+	element.addEventListener("click", async () => {
+		const filename = element.name;
+		const parent = element.parentElement;
+		const container = parent.querySelector(".presetContainer");
 
-	const parsedData = await read(filename);
-	for (const data of parsedData) {
-		const button = document.createElement("button");
-		button.innerHTML = data[0];
-		button.onclick = () => {
-			parent.querySelector("input").value = data[0];
+		const parsedData = await read(filename);
+
+		for (const data of parsedData) {
+			const button = document.createElement("button");
+			button.innerHTML = data[0];
+			button.onclick = () => {
+				parent.querySelector("input").value = data[0];
+			}
+			container.appendChild(button);
 		}
-		container.appendChild(button);
-	}
-}
+	}, false);
+});
 
 document.querySelectorAll(".presetSave").forEach(element => {
 	element.onclick = async (event) => {
@@ -34,11 +37,12 @@ document.querySelectorAll(".presetSave").forEach(element => {
 		
 		let inputs = [];
 		for (const input of container.querySelectorAll("input")) {
+
 			let value = input.name + ":";
 			if (input.type == "checkbox")
 				value += input.checked;
 			else
-				input.value;
+				value += input.value;
 
 			inputs.push(value);
 		}

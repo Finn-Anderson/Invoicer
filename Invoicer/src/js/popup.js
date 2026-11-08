@@ -275,8 +275,6 @@ let bValidSearch = false;
 async function search(event) {
 	const dropdown = document.querySelector(".dropdown");
 
-	console.log(event.target.value);
-
 	try {
 		if (event.target.value.length == 0)
 			throw "bad";

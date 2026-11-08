@@ -469,6 +469,18 @@ iframe.print {
 	margin-right: 2px;
 }
 
+#tableControls .presetContainer {
+	flex-direction: column;
+
+}
+
+#tableControls .presetContainer button {
+	width: 100%;
+}
+#tableControls .presetContainer button:first-child {
+	margin-top: 0px;
+}
+
 @keyframes popup {
 	from {
 		display: flex;

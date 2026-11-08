@@ -484,9 +484,7 @@ document.querySelectorAll(".tableNavBtn").forEach(element => {
 
 document.querySelectorAll(".tableNavPopup").forEach(element => {
 	const closes = element.querySelectorAll(".close");
-	console.log();
 	closes[closes.length - 1].onclick = () => {
-		console.log("EIOJIWEJG");
 		if (element.parentElement.querySelector(".tableNavBtn"))
 			element.parentElement.querySelector(".tableNavBtn").classList.remove("active");
 
