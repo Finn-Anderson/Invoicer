@@ -5,6 +5,7 @@ document.querySelectorAll(".presetBtn").forEach(element => {
 		const filename = element.name;
 		const parent = element.parentElement;
 		const container = parent.querySelector(".presetContainer");
+		container.innerHTML = "";
 
 		const parsedData = await read(filename);
 

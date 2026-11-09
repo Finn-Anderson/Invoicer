@@ -45,7 +45,7 @@ export function setupValuesList(amount) {
 			select += "$1, ";
 	}
 
-	select.slice(0, -2);
+	select = select.slice(0, -2);
 	select += ")";
 
 	return select;

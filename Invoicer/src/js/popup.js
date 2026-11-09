@@ -158,24 +158,23 @@ const MessageStatus = {
 	Exists: 1,
 	Advertiser: 2,
 	Invoice: 3,
-	Failed: 4
+	Empty: 4,
+	Failed: 5
 }
 
 async function submitPopupData(event) {
 	event.preventDefault();
 
 	const inputs = popupdata.querySelectorAll("input");
-	let message = document.getElementById("message");
+	let message = event.target.parentElement.querySelector("#message");
 	let success = MessageStatus.Success;
 
-	if (bValidSearch) {
-		inputs.forEach(element => {
-			if (element.required && !element.value)
-				success = MessageStatus.Failed;
-		});
-	}
-	else
+	inputs.forEach(element => {
+		if (element.type == "submit" || !element.required || element.value)
+			return;
+
 		success = MessageStatus.Empty;
+	});
 
 	if (success == MessageStatus.Success) {
 		const db = await loadDB();
@@ -191,6 +190,7 @@ async function submitPopupData(event) {
 						[inputs[0].value]
 					);
 				} catch(error) {
+					console.log(error);
 					if (error.includes("UNIQUE"))
 						success = MessageStatus.Exists;
 					else
@@ -262,6 +262,8 @@ async function submitPopupData(event) {
 			message.innerHTML = "Advertiser does not exist";
 		else if (success == MessageStatus.Invoice)
 			message.innerHTML = "Invoice does not exist";
+		else if (success == MessageStatus.Empty)
+			message.innerHTML = "Field missing value"
 		else
 			message.innerHTML = "Failed to save";
 	}
@@ -271,7 +273,6 @@ function hidePopupMenu() {
 	popupmenu.style.animation = "hide 0.2s forwards";
 }
 
-let bValidSearch = false;
 async function search(event) {
 	const dropdown = document.querySelector(".dropdown");
 
@@ -287,9 +288,7 @@ async function search(event) {
 		else
 			result = await db.select("SELECT invoiceNo FROM Invoices WHERE invoiceNo LIKE '%" + event.target.value + "%' LIMIT 5");
 
-		bValidSearch = result.length > 0;
-
-		if (!bValidSearch)
+		if (result.length == 0)
 			throw "bad";
 
 		dropdown.innerHTML = "";
@@ -320,8 +319,7 @@ async function search(event) {
 			dropdown.classList.add("show");
 		}
 	} catch (error) {
-
-		bValidSearch = false;
+		hideSearch();
 	}
 }
 

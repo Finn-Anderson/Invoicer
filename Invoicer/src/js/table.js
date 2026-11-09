@@ -41,12 +41,6 @@ async function displayTable(name, conditions, having) {
 			table.removeChild(element);
 		}
 
-		if (name == "Advertisers") {
-			document.getElementById("tallyTotal").parentElement.remove();
-			document.getElementById("rowTotal").parentElement.remove();
-			document.getElementById("popupPrint").lastChild.previousElementSibling.remove();
-		}
-
 		if (table.children.length == 0) {
 			const thr = document.createElement("tr");
 			table.appendChild(thr);
@@ -60,6 +54,9 @@ async function displayTable(name, conditions, having) {
 				th.innerHTML = "Advertiser";
 				thr.appendChild(th);
 			}
+
+			const columnContainer = document.getElementById("columns");
+			let bShowTotals = false;
 
 			for (const header of headers) {
 				let h = header.name;
@@ -123,13 +120,14 @@ async function displayTable(name, conditions, having) {
 					popup.appendChild(p2);
 					input2.name = word2.toLowerCase() + "_" + h;
 					popup.appendChild(input2);
+
+					bShowTotals = true;
 				}
 				else {
 					popup.appendChild(p);
 					popup.appendChild(input);
 				}
 
-				const columnContainer = document.getElementById("columns");
 				const container = document.createElement("div");
 
 				const icheckbox = document.createElement("input");
@@ -224,6 +222,33 @@ async function displayTable(name, conditions, having) {
 				llpdcheckbox.innerHTML = "Last Paid Date";
 				container2.appendChild(ilpdcheckbox);
 				container2.appendChild(llpdcheckbox);
+
+				columnContainer.appendChild(container);
+				columnContainer.appendChild(container2);
+			}
+
+			if (bShowTotals) {
+				const container = document.createElement("div");
+				const irowTotal = document.createElement("input");
+				irowTotal.type = "checkbox";
+				irowTotal.id = "rowTotal";
+				irowTotal.name = "Row Total";
+				const lrowTotal = document.createElement("label");
+				lrowTotal.setAttribute("for", "rowTotal");
+				lrowTotal.innerHTML = "Row Total";
+				container.appendChild(irowTotal);
+				container.appendChild(lrowTotal);
+
+				const container2 = document.createElement("div");
+				const itallyTotal = document.createElement("input");
+				itallyTotal.type = "checkbox";
+				itallyTotal.id = "tallyTotal";
+				itallyTotal.name = "Tally Total";
+				const ltallyTotal= document.createElement("label");
+				ltallyTotal.setAttribute("for", "tallyTotal");
+				ltallyTotal.innerHTML = "Tally Total";
+				container2.appendChild(itallyTotal);
+				container2.appendChild(ltallyTotal);
 
 				columnContainer.appendChild(container);
 				columnContainer.appendChild(container2);
@@ -328,9 +353,13 @@ async function deleteRow(table, row) {
 	if (id == "")
 		return;
 	
-	const db = await loadDB();
-	await db.execute("DELETE FROM " + table + " WHERE " + id);
-	window.location.reload();
+	try {
+		const db = await loadDB();
+		const status = await db.execute("DELETE FROM " + table + " WHERE " + id);
+		window.location.reload();
+	} catch(error) {
+		alert("Row is referenced in another table. Please remove the entries in the other table(s) before deleting this one.");
+	}
 }
 
 async function submitFilter() {
