@@ -1,10 +1,14 @@
 
 import { display, read } from "./includes/file.js";
 
+const parent = document.getElementById("columns");
 const ol = document.querySelector("ol");
 setTimeout(() => {
-	const inputs = document.querySelectorAll("input[type='checkbox']");
+	const inputs = parent.querySelectorAll("input[type='checkbox']");
 	for (const input of inputs) {
+		if (input.name == "Tally Total")
+			continue;
+
 		input.addEventListener("change", () => {
 			if (input.checked) {
 				const li = document.createElement("li");
@@ -41,6 +45,9 @@ document.getElementById("printSubmit").onclick = async () => {
 		let list = [];
 		for (const element of ol.children)
 			list.push(element.innerHTML);
+
+		if (parent.querySelector("input[name='Tally Total']").checked)
+			list.push(parent.querySelector("input[name='Tally Total']").name);
 		
 		if (list.length == 0) {
 			message.classList.add("failure");
@@ -104,7 +111,11 @@ document.getElementById("printSubmit").onclick = async () => {
 				let tally = 0;
 
 				for (let i = rows[0].children.length - 1; i > -1; i--) {
+					console.log(rows[0].children[i]);
 					const th = rows[0].children[i].cloneNode(true);
+
+					if (th.querySelector("div"))
+						th.removeChild(th.querySelector("div"));
 
 					if (name != th.innerHTML)
 						continue;

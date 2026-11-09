@@ -9,4 +9,14 @@ A way to store, display and print all of your invoices.
 
 ![Main menu](/readme-images/main.png)
 
-![Example of invoice](/readme-images/page.png)
+![Settings](/readme-images/settings.png)
+
+![Example of invoice](/readme-images/table.png)
+
+![Adding row to table](/readme-images/add.png)
+
+![Print + presets](/readme-images/print.png)
+
+![Printing](/readme-images/printing.png)
+
+![Filter](/readme-images/filter.png)

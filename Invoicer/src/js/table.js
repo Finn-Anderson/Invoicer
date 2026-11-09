@@ -355,7 +355,7 @@ async function deleteRow(table, row) {
 	
 	try {
 		const db = await loadDB();
-		const status = await db.execute("DELETE FROM " + table + " WHERE " + id);
+		await db.execute("DELETE FROM " + table + " WHERE " + id);
 		window.location.reload();
 	} catch(error) {
 		alert("Row is referenced in another table. Please remove the entries in the other table(s) before deleting this one.");
