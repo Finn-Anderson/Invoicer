@@ -2,8 +2,17 @@ const { exists, readFile, create, open, BaseDirectory } = window.__TAURI__.fs;
 
 export const dbdata = "dbdata", display = "display";
 
+async function checkDirectory() {
+	if (await exists("", { baseDir: BaseDirectory.AppData }))
+		return;
+
+	await mkdir("", { baseDir: BaseDirectory.AppData, recursive: true });
+}
+
 export async function read(filename) {
-	let data = await readFile(filename, { baseDir: BaseDirectory.AppLocalData });
+	await checkDirectory();
+
+	let data = await readFile(filename, { baseDir: BaseDirectory.AppData });
 
 	let decodedData = new TextDecoder().decode(data);
 
@@ -16,11 +25,13 @@ export async function read(filename) {
 }
 
 export async function fileExists(filename, bCreate = false, location = "") {
-	const status = await exists(filename, { baseDir: BaseDirectory.AppLocalData });
+	await checkDirectory();
+
+	const status = await exists(filename, { baseDir: BaseDirectory.AppData });
 
 	if (!status) {
 		if (bCreate)
-			await create(filename, { baseDir: BaseDirectory.AppLocalData });
+			await create(filename, { baseDir: BaseDirectory.AppData });
 
 		if (location)
 			window.location.href = location;
@@ -30,14 +41,16 @@ export async function fileExists(filename, bCreate = false, location = "") {
 }
 
 export async function updateFile(filename, data) {
+	await checkDirectory();
+
 	try {
 		const status = await fileExists(filename);
 		let file = null;
 
 		if (!status)
-			file = await create(filename, { baseDir: BaseDirectory.AppLocalData });
+			file = await create(filename, { baseDir: BaseDirectory.AppData });
 		else
-			file = await open(filename, { write: true, truncate: true, baseDir: BaseDirectory.AppLocalData });
+			file = await open(filename, { write: true, truncate: true, baseDir: BaseDirectory.AppData });
 
 		if (Array.isArray(data))
 			data = JSON.stringify(data);

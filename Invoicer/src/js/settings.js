@@ -40,6 +40,7 @@ async function displayForm() {
 		form.appendChild(pdbname);
 		const idbname = document.createElement("input");
 		idbname.id = "dbname";
+		idbname.required = true;
 		form.appendChild(idbname);
 	}
 	else {
@@ -48,6 +49,7 @@ async function displayForm() {
 		form.appendChild(phostname);
 		const ihostname = document.createElement("input");
 		ihostname.id = "hostname";
+		ihostname.required = true;
 		form.appendChild(ihostname);
 
 		const pusername = document.createElement("p");
@@ -55,6 +57,7 @@ async function displayForm() {
 		form.appendChild(pusername);
 		const iusername = document.createElement("input");
 		iusername.id = "username";
+		iusername.required = true;
 		form.appendChild(iusername);
 
 		const ppassword = document.createElement("p");
@@ -62,6 +65,7 @@ async function displayForm() {
 		form.appendChild(ppassword);
 		const ipassword = document.createElement("input");
 		ipassword.id = "password";
+		ipassword.required = false;
 		form.appendChild(ipassword);
 
 		const pdbname = document.createElement("p");
@@ -69,6 +73,7 @@ async function displayForm() {
 		form.appendChild(pdbname);
 		const idbname = document.createElement("input");
 		idbname.id = "dbname";
+		idbname.required = true;
 		form.appendChild(idbname);
 	}
 
@@ -110,7 +115,7 @@ async function save() {
 		let username = document.getElementById("username").value;
 		let password = document.getElementById("password").value;
 
-		if (host && password && dbname)
+		if (host && dbname)
 			content = type + "," + host + "," + username + "," + password + "," + dbname;
 		else
 			bSuccess = false;
