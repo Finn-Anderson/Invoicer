@@ -1,4 +1,4 @@
-const { exists, readFile, create, open, BaseDirectory } = window.__TAURI__.fs;
+const { exists, readFile, create, open, mkdir, BaseDirectory } = window.__TAURI__.fs;
 
 export const dbdata = "dbdata", display = "display";
 
