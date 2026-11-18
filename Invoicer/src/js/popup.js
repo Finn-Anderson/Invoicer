@@ -42,6 +42,7 @@ async function displayMenu() {
 		popupdata.appendChild(padvertiser);
 		const iadvertiser = document.createElement("input");
 		iadvertiser.name = "advertiser";
+		iadvertiser.autocomplete = "off";
 		iadvertiser.required = true;
 		div.appendChild(iadvertiser);
 
@@ -63,6 +64,7 @@ async function displayMenu() {
 		pinvoiceno.innerHTML = "Invoice Number";
 		popupdata.appendChild(pinvoiceno);
 		const iinvoiceno = document.createElement("input");
+		iinvoiceno.autocomplete = "off";
 		iinvoiceno.required = true;
 		popupdata.appendChild(iinvoiceno);
 
@@ -184,8 +186,6 @@ async function submitPopupData(event) {
 				try {
 					let list = setupValuesList(1);
 
-					//await db.execute("DROP TABLE IF EXISTS Advertisers");
-					await db.execute("CREATE TABLE IF NOT EXISTS Advertisers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, UNIQUE(name))");
 					await db.execute("INSERT INTO Advertisers (name) VALUES " + list,
 						[inputs[0].value]
 					);
@@ -199,13 +199,8 @@ async function submitPopupData(event) {
 			}
 			else if (event.target.children[1].name == "invoice") {
 				try {
-					const result = await db.select("SELECT id FROM Advertisers WHERE name = " + inputs[0].value);
+					const result = await db.select("SELECT id FROM Advertisers WHERE name = '" + inputs[0].value + "'");
 					if (result.length == 0) throw "empty";
-
-					//await db.execute("DROP TABLE IF EXISTS Invoices");
-					//await db.execute("DROP TABLE IF EXISTS Payments");
-					await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount DECIMAL NOT NULL, vat DECIMAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
-					await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount INTEGER NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo))");
 
 					let list = setupValuesList(6);
 

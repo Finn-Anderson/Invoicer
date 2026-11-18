@@ -4,21 +4,28 @@ import { read, fileExists } from "./file.js";
 let type = "mysql";
 
 export async function loadDB() {
+	let db = null;
+
 	let filename = "dbdata";
 	if (!await fileExists(filename, false, "../settings.html"))
-		return;
+		return db;
 
 	const parsedData = await read(filename);
-	let db = null;
 
 	type = parsedData[0];
 
-	if (type == "sqlite")
-		db = await Database.load(type + ":" + parsedData[1]);
-	else
-		db = await Database.load(type + "://" + parsedData[2] + ":" + parsedData[3] + "@" + parsedData[1] + "/" + parsedData[4]);
+	try {
+		if (type == "sqlite")
+			db = await Database.load(type + ":" + parsedData[1]);
+		else
+			db = await Database.load(type + "://" + parsedData[2] + ":" + parsedData[3] + "@" + parsedData[1] + "/" + parsedData[4]);
 
-	return db;
+		return db;
+	} catch(error) {
+		console.log(error);
+
+		return db;
+	}
 }
 
 export function typeDB() {
@@ -30,7 +37,7 @@ export async function dbTableHeaders(db, tableName) {
 	if (type == "sqlite")
 		command = "PRAGMA table_info(" + tableName + ");";
 	else
-		command = "SELECT column_name FROM information_schema.columns WHERE table_name = '" + tableName + "';";
+		command = "SELECT column_name as 'name' FROM information_schema.columns WHERE table_name = '" + tableName + "' ORDER BY ordinal_position;";
 
 	return await db.select(command);
 }
@@ -38,11 +45,11 @@ export async function dbTableHeaders(db, tableName) {
 export function setupValuesList(amount) {
 	let select = "(";
 
-	for (let i = 0; i < amount; i++) {
+	for (let i = 1; i <= amount; i++) {
 		if (type == "mysql")
 			select += "?, ";
 		else
-			select += "$1, ";
+			select += `$${i}, `;
 	}
 
 	select = select.slice(0, -2);

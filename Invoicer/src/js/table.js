@@ -1,4 +1,4 @@
-import { loadDB, dbTableHeaders } from "./includes/db.js";
+import { loadDB, dbTableHeaders, typeDB } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
 
 const table = document.getElementById("table");
@@ -47,7 +47,7 @@ async function displayTable(name, conditions, having) {
 
 			const headers = await dbTableHeaders(db, name);
 			if (name == "Invoices")
-				[headers[0], headers[1]] = [headers[1], headers[0]]
+				[headers[0], headers[1]] = [headers[1], headers[0]];
 
 			if (name == "Payments") {
 				const th = document.createElement("th");

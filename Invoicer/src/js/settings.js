@@ -1,4 +1,5 @@
 import { dbdata, display, read, fileExists, updateFile } from "./includes/file.js";
+import { loadDB } from "./includes/db.js";
 
 const status = await fileExists(dbdata);
 
@@ -126,8 +127,27 @@ async function save() {
 
 	let message = document.getElementById("message");
 	if (bSuccess) {
-		message.classList.add("success");
-		message.innerHTML = "Saved";
+		try {
+			const db = await loadDB();
+
+			let autoincrement = "AUTOINCREMENT"
+			if (type == "mysql")
+				autoincrement = "AUTO_INCREMENT";
+			else if (type == "postgres")
+				autoincrement = "SERIAL";
+			
+			await db.execute("CREATE TABLE IF NOT EXISTS Advertisers (id INTEGER PRIMARY KEY " + autoincrement + ", name VARCHAR(160) NOT NULL, UNIQUE(name))");
+			await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount REAL NOT NULL, vat REAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
+			await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount REAL NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo))");
+
+			message.classList.add("success");
+			message.innerHTML = "Saved";
+		} catch(error) {
+			console.log(error);
+		
+			message.classList.add("failure");
+			message.innerHTML = error;
+		}
 	}
 	else {
 		message.classList.add("failure");
