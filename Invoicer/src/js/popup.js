@@ -11,7 +11,14 @@ let popupmenu = document.getElementById("popupmenu");
 let popupdata = document.getElementById("popupdata");
 popupdata.addEventListener("submit", submitPopupData, false);
 
-async function displayMenu() {
+let rowToEdit = null;
+
+export async function displayMenu(row = null) {
+	if (row instanceof PointerEvent)
+		row = null;
+
+	rowToEdit = row;
+	
 	const parsedData = await read(display);
 
 	popupmenu.style.animation = "popup 0.2s forwards";
@@ -64,6 +71,7 @@ async function displayMenu() {
 		pinvoiceno.innerHTML = "Invoice Number";
 		popupdata.appendChild(pinvoiceno);
 		const iinvoiceno = document.createElement("input");
+		iinvoiceno.name = "invoiceNo";
 		iinvoiceno.autocomplete = "off";
 		iinvoiceno.required = true;
 		popupdata.appendChild(iinvoiceno);
@@ -72,6 +80,7 @@ async function displayMenu() {
 		pamount.innerHTML = "Amount (" + parsedData[1] + ")";
 		popupdata.appendChild(pamount);
 		const iamount = document.createElement("input");
+		iamount.name = "amount";
 		iamount.value = "0.00";
 		iamount.type = "currency";
 		iamount.step = "0.01";
@@ -83,6 +92,7 @@ async function displayMenu() {
 		pvat.innerHTML = "VAT (" + parsedData[1] + ")";
 		popupdata.appendChild(pvat);
 		const ivat = document.createElement("input");
+		ivat.name = "vat";
 		ivat.value = "0.00";
 		ivat.type = "currency";
 		ivat.step = "0.01";
@@ -94,6 +104,7 @@ async function displayMenu() {
 		pdate.innerHTML = "Invoice Date";
 		popupdata.appendChild(pdate);
 		const idate = document.createElement("input");
+		idate.name = "date";
 		idate.type = "date";
 		idate.required = true;
 		popupdata.appendChild(idate);
@@ -102,6 +113,7 @@ async function displayMenu() {
 		pduedate.innerHTML = "Due Date";
 		popupdata.appendChild(pduedate);
 		const iduedate = document.createElement("input");
+		iduedate.name = "dueDate";
 		iduedate.type = "date";
 		iduedate.required = true;
 		popupdata.appendChild(iduedate);
@@ -112,6 +124,7 @@ async function displayMenu() {
 		popupdata.appendChild(pinvoiceno);
 		const iinvoiceno = document.createElement("input");
 		iinvoiceno.name = "invoiceNo";
+		iinvoiceno.autocomplete = "off";
 		iinvoiceno.required = true;
 		iinvoiceno.addEventListener("keyup", search, false);
 		iinvoiceno.addEventListener("focusin", search, false);
@@ -128,6 +141,7 @@ async function displayMenu() {
 		ppaid.innerHTML = "Paid (" + parsedData[1] + ")";
 		popupdata.appendChild(ppaid);
 		const ipaid = document.createElement("input");
+		ipaid.name = "amount";
 		ipaid.value = "0.00";
 		ipaid.type = "currency";
 		ipaid.step = "0.01";
@@ -139,6 +153,7 @@ async function displayMenu() {
 		pdate.innerHTML = "Payment Date";
 		popupdata.appendChild(pdate);
 		const idate = document.createElement("input");
+		idate.name = "date";
 		idate.type = "date";
 		idate.required = true;
 		popupdata.appendChild(idate);
@@ -146,7 +161,7 @@ async function displayMenu() {
 
 	const button = document.createElement("input");
 	button.type = "submit";
-	button.innerHTML = "Submit";
+	button.value = row == null ? "Submit" : "Update";
 	popupdata.appendChild(button);
 }
 
@@ -184,14 +199,23 @@ async function submitPopupData(event) {
 		if (db) {
 			if (event.target.children[1].name == "advertiser") {
 				try {
-					let list = setupValuesList(1);
+					if (rowToEdit == null) {
+						let list = setupValuesList(1);
 
-					await db.execute("INSERT INTO Advertisers (name) VALUES " + list,
-						[inputs[0].value]
-					);
+						await db.execute("INSERT INTO Advertisers (name) VALUES " + list,
+							[inputs[0].value]
+						);
+					}
+					else {
+						let list = setupValuesList(2, true);
+						const id = rowToEdit.querySelector("td[data-name=id]").innerHTML;
+						
+						await db.execute(`UPDATE Advertisers SET name = ${list[0]} WHERE id = ${list[1]}`,
+							[inputs[0].value, id]
+						);
+					}
 				} catch(error) {
-					console.log(error);
-					if (error.includes("UNIQUE"))
+					if (error.includes("UNIQUE") || error.includes("Duplicate"))
 						success = MessageStatus.Exists;
 					else
 						success = MessageStatus.Failed;
@@ -202,14 +226,23 @@ async function submitPopupData(event) {
 					const result = await db.select("SELECT id FROM Advertisers WHERE name = '" + inputs[0].value + "'");
 					if (result.length == 0) throw "empty";
 
-					let list = setupValuesList(6);
+					if (rowToEdit == null) {
+						let list = setupValuesList(6);
 
-					await db.execute("INSERT INTO Invoices (invoiceNo, advertiserID, amount, vat, date, dueDate) VALUES " + list,
-						[inputs[1].value, result[0].id, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value]
-					);
+						await db.execute("INSERT INTO Invoices (invoiceNo, advertiserID, amount, vat, date, dueDate) VALUES " + list,
+							[inputs[1].value, result[0].id, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value]
+						);
+					}
+					else {
+						let list = setupValuesList(7, true);
+						const invoiceNo = rowToEdit.querySelector("td[data-name=invoiceNo]").innerHTML;
+						
+						await db.execute(`UPDATE Invoices SET invoiceNo = ${list[0]}, advertiserID = ${list[1]}, amount = ${list[2]}, vat = ${list[3]}, date = ${list[4]}, dueDate = ${list[5]} WHERE invoiceNo = ${list[6]}`,
+							[inputs[1].value, result[0].id, inputs[2].value, inputs[3].value, inputs[4].value, inputs[5].value, invoiceNo]
+						);
+					}
 				} catch(error) {
-					console.log(error);
-					if (error.includes("UNIQUE"))
+					if (error.includes("UNIQUE") || error.includes("Duplicate"))
 						success = MessageStatus.Exists;
 					else if (error == "empty")
 						success = MessageStatus.Advertiser;
@@ -222,17 +255,28 @@ async function submitPopupData(event) {
 					const result = await db.select("SELECT invoiceNo, amount, vat FROM Invoices WHERE invoiceNo = " + inputs[0].value);
 					if (result.length == 0) throw "empty";
 
-					let list = setupValuesList(3);
+					if (rowToEdit == null) {
+						let list = setupValuesList(3);
 
-					await db.execute("INSERT INTO Payments (invoiceNo, amount, date) VALUES " + list,
-						[inputs[0].value, inputs[1].value, inputs[2].value]
-					);
+						await db.execute("INSERT INTO Payments (invoiceNo, amount, date) VALUES " + list,
+							[inputs[0].value, inputs[1].value, inputs[2].value]
+						);
+					}
+					else {
+						let list = setupValuesList(5, true);
+						const invoiceNo = rowToEdit.querySelector("td[data-name=invoiceNo]").innerHTML;
+						const values = rowToEdit.querySelector("td[data-name=date]").innerHTML.split("/");
+						const date = values[2] + "-" + values[1] + "-" + values[0];
+						
+						await db.execute(`UPDATE Payments SET invoiceNo = ${list[0]}, amount = ${list[1]}, date = ${list[2]} WHERE invoiceNo = ${list[3]} AND date = ${list[4]}`,
+							[inputs[0].value, inputs[1].value, inputs[2].value, invoiceNo, date]
+						);
+					}
 				} catch(error) {
-					console.log(error);
-					if (error.includes("UNIQUE"))
+					if (error.includes("UNIQUE") || error.includes("Duplicate"))
 						success = MessageStatus.Exists;
 					else if (error == "empty")
-						success = MessageStatus.Advertiser;
+						success = MessageStatus.Invoice;
 					else
 						success = MessageStatus.Failed;
 				}
@@ -243,6 +287,7 @@ async function submitPopupData(event) {
 		}
 	}
 
+	message.classList.remove(...message.classList);
 	if (success == MessageStatus.Success) {
 		message.classList.add("success");
 		message.innerHTML = "Saved";
@@ -258,7 +303,7 @@ async function submitPopupData(event) {
 		else if (success == MessageStatus.Invoice)
 			message.innerHTML = "Invoice does not exist";
 		else if (success == MessageStatus.Empty)
-			message.innerHTML = "Field missing value"
+			message.innerHTML = "Field missing value";
 		else
 			message.innerHTML = "Failed to save";
 	}

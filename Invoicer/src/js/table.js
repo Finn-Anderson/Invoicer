@@ -1,5 +1,6 @@
-import { loadDB, dbTableHeaders, typeDB } from "./includes/db.js";
+import { loadDB, dbTableHeaders } from "./includes/db.js";
 import { display, read } from "./includes/file.js";
+import { displayMenu } from "./popup.js";
 
 const table = document.getElementById("table");
 const popup = document.getElementById("popupfilter").querySelector(".tableDataContainer");
@@ -257,6 +258,7 @@ async function displayTable(name, conditions, having) {
 			const th = document.createElement("th");
 			th.innerHTML = "";
 			thr.appendChild(th);
+			thr.appendChild(th.cloneNode());
 		}
 
 		for await (let element of result) {
@@ -328,6 +330,17 @@ async function displayTable(name, conditions, having) {
 			td.appendChild(delBtn);
 			tr.appendChild(td);
 
+			const td2 = document.createElement("td");
+			const editBtn = document.createElement("button");
+			editBtn.id = "editBtn";
+			editBtn.onclick = async () => { await editRow(name, tr); };
+			const i = document.createElement("i");
+			i.classList.add("fa");
+			i.innerHTML = "&#xf040;";
+			editBtn.appendChild(i);
+			td2.appendChild(editBtn);
+			tr.appendChild(td2);
+
 			table.appendChild(tr);
 		};
 	} catch(error) {
@@ -359,6 +372,27 @@ async function deleteRow(table, row) {
 		window.location.reload();
 	} catch(error) {
 		alert("Row is referenced in another table. Please remove the entries in the other table(s) before deleting this one.");
+	}
+}
+
+async function editRow(table, row) {
+	await displayMenu(row);
+
+	const inputs = document.querySelector("#popupdata").querySelectorAll("input");
+	for (const input of inputs) {
+		const name = input.name == "advertiser" ? (table == "Invoices" ? "advertiserID" : "name") : input.name;
+
+		if (name == "")
+			continue;
+
+		const td = row.querySelector("td[data-name='" + name + "']");
+
+		let value = td.innerHTML;
+		if (input.type == "date") {
+			const values = td.innerHTML.split("/");
+			value = values[2] + "-" + values[1] + "-" + values[0];
+		}
+		input.value = value;
 	}
 }
 
@@ -511,13 +545,17 @@ document.querySelectorAll(".tableNavBtn").forEach(element => {
 	}
 });
 
-document.querySelectorAll(".tableNavPopup").forEach(element => {
-	const closes = element.querySelectorAll(".close");
-	closes[closes.length - 1].onclick = () => {
-		if (element.parentElement.querySelector(".tableNavBtn"))
-			element.parentElement.querySelector(".tableNavBtn").classList.remove("active");
+document.querySelectorAll(".close").forEach(element => {
+	element.onclick = () => {
+		let popupElement = element.parentElement.parentElement;
+		if (element.classList.contains("preset"))
+			popupElement = element.parentElement;
 
-		element.classList.remove("show");
-		element.classList.add("hide");
-	};
+		popupElement.classList.remove("show");
+		popupElement.classList.add("hide");
+
+		popupElement.parentElement.querySelectorAll(".active").forEach(element => {
+			element.classList.remove("active");
+		});
+	}
 });

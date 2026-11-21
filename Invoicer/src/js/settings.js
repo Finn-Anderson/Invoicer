@@ -126,9 +126,13 @@ async function save() {
 		bSuccess = false;
 
 	let message = document.getElementById("message");
+	message.classList.remove(...message.classList);
 	if (bSuccess) {
 		try {
 			const db = await loadDB();
+
+			if (typeof db == "string")
+				throw db;
 
 			let autoincrement = "AUTOINCREMENT"
 			if (type == "mysql")
@@ -137,14 +141,12 @@ async function save() {
 				autoincrement = "SERIAL";
 			
 			await db.execute("CREATE TABLE IF NOT EXISTS Advertisers (id INTEGER PRIMARY KEY " + autoincrement + ", name VARCHAR(160) NOT NULL, UNIQUE(name))");
-			await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount REAL NOT NULL, vat REAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id))");
-			await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount REAL NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo))");
+			await db.execute("CREATE TABLE IF NOT EXISTS Invoices (invoiceNo INTEGER PRIMARY KEY, advertiserID INTEGER NOT NULL, amount REAL NOT NULL, vat REAL NOT NULL, date DATE NOT NULL, dueDate DATE NOT NULL, FOREIGN KEY (advertiserID) REFERENCES Advertisers(id) ON UPDATE CASCADE)");
+			await db.execute("CREATE TABLE IF NOT EXISTS Payments (invoiceNo INTEGER, amount REAL NOT NULL, date DATE NOT NULL, PRIMARY KEY (invoiceNo, date), FOREIGN KEY (invoiceNo) REFERENCES Invoices(invoiceNo) ON UPDATE CASCADE)");
 
 			message.classList.add("success");
 			message.innerHTML = "Saved";
 		} catch(error) {
-			console.log(error);
-		
 			message.classList.add("failure");
 			message.innerHTML = error;
 		}

@@ -3,6 +3,10 @@ import { read, fileExists, updateFile } from "./includes/file.js";
 document.querySelectorAll(".presetBtn").forEach(element => {
 	element.addEventListener("click", async () => {
 		const filename = element.name;
+
+		if (!await fileExists(filename))
+			return;
+
 		const parent = element.parentElement;
 		const container = parent.querySelector(".presetContainer");
 		container.innerHTML = "";

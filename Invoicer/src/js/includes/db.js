@@ -2,6 +2,7 @@ const Database = window.__TAURI__.sql;
 import { read, fileExists } from "./file.js";
 
 let type = "mysql";
+let name = "";
 
 export async function loadDB() {
 	let db = null;
@@ -13,18 +14,21 @@ export async function loadDB() {
 	const parsedData = await read(filename);
 
 	type = parsedData[0];
+	name = parsedData[1];
 
 	try {
-		if (type == "sqlite")
+		if (type == "sqlite") {
 			db = await Database.load(type + ":" + parsedData[1]);
-		else
+			name = parsedData[1];
+		}
+		else {
 			db = await Database.load(type + "://" + parsedData[2] + ":" + parsedData[3] + "@" + parsedData[1] + "/" + parsedData[4]);
+			name = parsedData[4];
+		}
 
 		return db;
 	} catch(error) {
-		console.log(error);
-
-		return db;
+		return error;
 	}
 }
 
@@ -37,20 +41,28 @@ export async function dbTableHeaders(db, tableName) {
 	if (type == "sqlite")
 		command = "PRAGMA table_info(" + tableName + ");";
 	else
-		command = "SELECT column_name as 'name' FROM information_schema.columns WHERE table_name = '" + tableName + "' ORDER BY ordinal_position;";
+		command = "SELECT column_name as 'name' FROM information_schema.columns WHERE table_name = '" + tableName + "' AND table_schema = '" + name + "' ORDER BY ordinal_position";
 
 	return await db.select(command);
 }
 
-export function setupValuesList(amount) {
+export function setupValuesList(amount, bList = false) {
 	let select = "(";
+	let list = [];
 
 	for (let i = 1; i <= amount; i++) {
+		let value = `$${i}`;
 		if (type == "mysql")
-			select += "?, ";
+			value = "?";
+
+		if (bList)
+			list.push(value);
 		else
-			select += `$${i}, `;
+			select += value + ", ";
 	}
+
+	if (bList)
+		return list;
 
 	select = select.slice(0, -2);
 	select += ")";

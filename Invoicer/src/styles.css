@@ -95,6 +95,10 @@ input, button, div a {
 	width: 240px;
 	padding: 0.6em 1.2em;
 }
+form input {
+	min-width: 240px;
+    width: calc(100% - 2.4em);
+}
 
 select:hover, input:hover, button:hover, button.active, div a:hover {
 	filter: drop-shadow(0 0 2px #5C5CD5);
@@ -156,6 +160,7 @@ select {
 	text-align: center;
 	font-weight: bold;
 	margin: 0;
+	max-width: 480px;
 }
 #message.success, #message.failure {
 	margin: 12px;
@@ -242,11 +247,11 @@ select {
 #tableControls {
 	display: flex;
 	margin: 8px 0px;
-	margin-right: 50px;
+	margin-right: 90px;
 	flex-direction: row-reverse;
 }
 
-#tableControls button, #delBtn {
+#tableControls button, #delBtn, #editBtn {
 	margin: 0px;
 	padding: 4px 8px;
 	width: auto;
@@ -267,17 +272,23 @@ table {
 }
 
 #delBtn {
-	opacity: 0;
 	background-color: #d55c5c;
-	padding: 4px 9px;
 	filter: drop-shadow(0 0 2px #d55c5c);
+	padding: 4px 9px;
+}
+#editBtn {
+	font-size: 12px;
+    padding: 7px 9px;
 }
 #delBtn:hover {
 	background-color: #da7070;
 	filter: drop-shadow(0 0 2px #da7070);
 }
-#delBtn:active {
+#delBtn:active, #editBtn:active {
 	transform: translateY(1px);
+}
+#table tr td:has(#editBtn) {
+	padding-left: 1px;
 }
 
 table tr {
@@ -302,12 +313,11 @@ table td.success, table td.inconclusive, table td.failure {
 	font-weight: bold;
 	cursor: default;
 }
-#table tr td:last-child {
+#table tr td:nth-last-child(-n+2), #table tr th:nth-last-child(-n+2) {
 	background-color: transparent;
-	padding: 3px 8px;
 }
-#table tr th:last-child {
-	background-color: transparent;
+#table tr td:nth-last-child(-n+2) {
+	padding: 3px 8px;
 }
 tr:hover #delBtn {
 	opacity: 1;
