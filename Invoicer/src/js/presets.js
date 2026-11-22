@@ -2,27 +2,31 @@ import { read, fileExists, updateFile } from "./includes/file.js";
 
 document.querySelectorAll(".presetBtn").forEach(element => {
 	element.addEventListener("click", async () => {
-		const filename = element.name;
-
-		if (!await fileExists(filename))
-			return;
-
-		const parent = element.parentElement;
-		const container = parent.querySelector(".presetContainer");
-		container.innerHTML = "";
-
-		const parsedData = await read(filename);
-
-		for (const data of parsedData) {
-			const button = document.createElement("button");
-			button.innerHTML = data[0];
-			button.onclick = () => {
-				parent.querySelector("input").value = data[0];
-			}
-			container.appendChild(button);
-		}
+		await displaySaves(element);
 	}, false);
 });
+
+async function displaySaves(element) {
+	const filename = element.name;
+
+	if (!await fileExists(filename))
+		return;
+
+	const parent = element.parentElement;
+	const container = parent.querySelector(".presetContainer");
+	container.innerHTML = "";
+
+	const parsedData = await read(filename);
+
+	for (const data of parsedData) {
+		const button = document.createElement("button");
+		button.innerHTML = data[0];
+		button.onclick = () => {
+			parent.querySelector("input").value = data[0];
+		}
+		container.appendChild(button);
+	}
+}
 
 document.querySelectorAll(".presetSave").forEach(element => {
 	element.onclick = async (event) => {
@@ -42,7 +46,6 @@ document.querySelectorAll(".presetSave").forEach(element => {
 		
 		let inputs = [];
 		for (const input of container.querySelectorAll("input")) {
-
 			let value = input.name + ":";
 			if (input.type == "checkbox")
 				value += input.checked;
@@ -73,6 +76,7 @@ document.querySelectorAll(".presetSave").forEach(element => {
 			parsedData.push(saveData);
 
 		await updateFile(filename, parsedData);
+		await displaySaves(element.parentElement.parentElement.parentElement.querySelector(".presetBtn"));
 
 		message.classList.add("success");
 		message.innerHTML = "Saved preset";
@@ -121,5 +125,42 @@ document.querySelectorAll(".presetLoad").forEach(element => {
 
 		message.classList.add("success");
 		message.innerHTML = "Loaded preset";
+	};
+});
+
+document.querySelectorAll(".presetDelete").forEach(element => {
+	element.onclick = async (event) => {
+		const filename = event.target.name;
+		const parent = event.target.parentElement.parentElement.parentElement.parentElement;
+		const title = event.target.parentElement.parentElement.querySelector("input").value;
+		
+		await fileExists(filename, true);
+		const parsedData = await read(filename);
+
+		let bFound = false;
+		for (let i = parsedData.length - 1; i > -1; i--) {
+			if (parsedData[i][0] != title)
+				continue;
+
+			parsedData.splice(i, 1);
+			bFound = true;
+			break;
+		}
+
+		const message = parent.querySelector("#message");
+		message.classList.remove(...message.classList);
+
+		if (!bFound) {
+			message.classList.add("failure");
+			message.innerHTML = "Save not found";
+
+			return;
+		}
+
+		await updateFile(filename, parsedData);
+		await displaySaves(element.parentElement.parentElement.parentElement.querySelector(".presetBtn"));
+
+		message.classList.add("success");
+		message.innerHTML = "Save deleted";
 	};
 });

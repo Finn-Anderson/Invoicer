@@ -15,7 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	document.getElementById("tableH1").innerHTML = name;
 
-	order = " ORDER BY invoiceNo DESC";
+	order = " ORDER BY " + name + ".invoiceNo DESC";
 	if (name == "Advertisers")
 		order = " ORDER BY id ASC";
 
@@ -28,7 +28,9 @@ async function displayTable(name, conditions, having) {
 
 		let result;
 		if (name == "Invoices")
-			result = await db.select("SELECT Invoices.*, SUM(Payments.amount) AS paid, MAX(Payments.date) as lastPaidDate FROM Invoices LEFT JOIN Payments ON Payments.invoiceNo = Invoices.invoiceNo" + conditions + " GROUP BY Invoices.invoiceNo" + having + order);
+			result = await db.select(`SELECT Invoices.*, SUM(Payments.amount) AS paid, MAX(Payments.date) as lastPaidDate FROM Invoices LEFT JOIN Payments ON Payments.invoiceNo = Invoices.invoiceNo${conditions} GROUP BY Invoices.invoiceNo${having}${order}`);
+		else if (name == "Payments")
+			result = await db.select(`SELECT Invoices.advertiserID, Payments.* FROM ${name} LEFT JOIN Invoices ON Invoices.invoiceNo = Payments.invoiceNo${conditions}${having}${order}`);
 		else
 			result = await db.select("SELECT * FROM " + name + conditions + having + order);
 
@@ -49,12 +51,8 @@ async function displayTable(name, conditions, having) {
 			const headers = await dbTableHeaders(db, name);
 			if (name == "Invoices")
 				[headers[0], headers[1]] = [headers[1], headers[0]];
-
-			if (name == "Payments") {
-				const th = document.createElement("th");
-				th.innerHTML = "Advertiser";
-				thr.appendChild(th);
-			}
+			else if (name == "Payments")
+				headers.unshift({name: "advertiserID"});
 
 			const columnContainer = document.getElementById("columns");
 			let bShowTotals = false;
@@ -288,15 +286,6 @@ async function displayTable(name, conditions, having) {
 					const data = await db.select("SELECT name FROM Advertisers WHERE id = " + value);
 					value = data[0].name;
 				}
-				else if (name == "Payments" && key == "invoiceNo") {
-					const data = await db.select("SELECT advertiserID FROM Invoices WHERE invoiceNo = " + value);
-					const data1 = await db.select("SELECT name FROM Advertisers WHERE id = " + data[0].advertiserID);
-
-					const td1 = document.createElement("td");
-					td1.dataset.name = "advertiser";
-					td1.innerHTML = data1[0].name;
-					tr.appendChild(td1);
-				}
 				else if (key.toLowerCase().includes("amount") || key.toLowerCase().includes("vat"))
 					td.classList.add("tdCurrency");
 				else if (key.toLowerCase().includes("date")) {
@@ -415,24 +404,34 @@ async function submitFilter() {
 			let value = element.value;
 			let field = element.name;
 
-			if (element.name == "advertiserID") {
+			if (element.name == "Advertiser") {
 				const data = await db.select("SELECT id FROM Advertisers WHERE name LIKE '%" + value + "%'");
 
 				let list = "(";
 				for await (const result of data)
-					list += result.id + ",";
-				list = list.substring(0, list.length - 1) + ")";
+					list += `'${result.id} ',`;
+
+				if (data.length > 0)
+					list = list.substring(0, list.length - 1) + ")";
+				else
+					list += `'${value}')`;
 
 				where += " advertiserID IN " + list;
 			}
 			else if (element.name.includes("_")) {
 				const type = field.split("_")[0];
-				field = field.split("_")[1];
+				field = field.split("_")[1].split(" ")[0];
 
 				if (element.name.toLowerCase().includes("date"))
-					value = "'" + value + "'";
+					value = `'${value}'`;
 
-				let condition = " " + field + (type == "from" || type == "min" ? " >= " : " <= ") + value;
+				let condition = " ";
+				if (field == "lastPaidDate")
+					condition += field;
+				else
+					condition += `${name}.${field}`;
+
+				condition += (type == "from" || type == "min" ? " >= " : " <= ") + value
 
 				if (element.name.toLowerCase().includes("date")) {
 					if (havingCount > 0)
@@ -448,7 +447,7 @@ async function submitFilter() {
 					where += condition;
 			}
 			else {
-				where += " " + field + " LIKE '%" + value + "%'";
+				where += ` ${name}.${field} LIKE '%${value}%'`;
 			}
 
 			whereCount++;
